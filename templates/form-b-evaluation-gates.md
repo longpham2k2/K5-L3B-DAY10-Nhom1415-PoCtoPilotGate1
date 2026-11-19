@@ -165,15 +165,19 @@ mà cả bàn chưa nghĩ tới, không phải tả lại nhánh đã biết.
 **Câu hỏi dẫn dắt:** tool nào tạo ra hậu quả không đảo ngược? Mỗi tham số của tool đó lấy từ đâu (ticket, DB, model tự suy)?
 Với mỗi guideword: hậu quả cho ai, hiện có gì ngăn, cần thêm gate ở tầng nào (phát hiện / chặn / giới hạn thiệt hại)?
 
-Tool chọn phân tích: `________________` (gợi ý: `issue_refund`, `file_carrier_fault`, `notify_carrier`)
+Tool chọn phân tích: `issue_refund` (ghi khoản hoàn tiền vào sổ cái mô phỏng).
+
+**Phạm vi theo PRD Lab 09 §2:** kiểm thử offline từng claim bằng ticket mô phỏng; không chuyển tiền thật, không tự tạo approval và không xử lý hàng loạt. Các hậu quả tài chính bên dưới là rủi ro cần phòng ngừa khi cân nhắc pilot, không phải thiệt hại thực tế đã xảy ra. Tình huống đồng thời chỉ là rủi ro mở rộng để thảo luận, nằm ngoài phạm vi kiểm thử hiện tại.
+
+Phân biệt mốc: cột kiểm soát dưới đây nêu cả host của bản base và guard trong code hiện tại. Mốc base bỏ qua guard của bàn; có code chưa đồng nghĩa đã có bằng chứng chạy đạt.
 
 | Tham số / dòng dữ liệu | Guideword | Lệch cụ thể (viết bằng dữ kiện của lab) | Hậu quả, cho ai | Hiện có gì ngăn? | Gate đề xuất + tầng |
 |---|---|---|---|---|---|
-| | WRONG | | | | |
-| | INVALID | | | | |
-| | INCOMPLETE | | | | |
-| | PERTURBED | | | | |
-| | INCAPABLE | | | | |
+| `approval_id`, số tiền và đối tượng của phê duyệt | INVALID | Agent dùng mã phê duyệt hết hạn, sai đơn/khách/ticket hoặc có hạn mức nhỏ hơn khoản yêu cầu hoàn. | Khoản hoàn không được duyệt hợp lệ làm LogiX chịu chi ngoài quyền hạn; người duyệt và kế toán phải xác minh, đối soát lại. | Host base chỉ chặn tổng hoàn vượt tổng tiền đơn, không xác minh phê duyệt. Guard hiện tại trong `lab10/guards.py` kiểm tra trạng thái, thời hạn, đối tượng, hạn mức và người duyệt nếu đã cấu hình; không hợp lệ thì chuyển người. Chưa có trace đính kèm ở đây. | Chặn ghi tiền khi không xác minh được phê duyệt; đặt `operations.approver_id` theo người được giao quyền, kiểm chứng bằng trace trường hợp hết hạn/sai đối tượng. Tầng: chặn và vận hành. |
+| Lịch sử hoàn theo đơn và thông tin tracking để xác định quyền lợi | INCOMPLETE | Thiếu hoặc chưa cập nhật lịch sử hoàn, trong khi cờ `refund_status` chưa phản ánh khoản đã trả; agent đề xuất thêm tiền dù tổng hoàn vẫn có thể chưa vượt giá trị đơn. | Hoàn lặp hoặc hoàn vượt quyền lợi; LogiX mất tiền, khách có thể phải xử lý thu hồi và kế toán phải sửa chênh lệch. | Host base cộng các dòng sổ cái hiện có và chặn vượt giá trị đơn. Guard hiện tại còn kiểm tra cờ đã hoàn, bản ghi cùng ticket/đơn, quyền lợi theo tracking và policy; các kiểm tra này vẫn phụ thuộc dữ liệu nguồn đầy đủ. | Đối chiếu lịch sử hoàn với quyền lợi còn lại theo quy tắc policy, không chỉ với tổng giá trị đơn; thiếu dữ liệu hoặc không xác minh được trạng thái đối soát thì chuyển người trước khi ghi. Tầng: chặn. |
+| Định danh yêu cầu và thời điểm kiểm tra/ghi sổ cái | PERTURBED | Cùng yêu cầu hoàn được gửi lại; trong vận hành thật, hai lượt đồng thời có thể cùng kiểm tra khi chưa thấy khoản hoàn của lượt kia rồi cùng ghi tiền. Đây là giả thuyết vận hành, chưa được mô phỏng đồng thời trong lab. | Có thể trả hai lần cho cùng yêu cầu dù chưa vượt tổng tiền đơn; LogiX chịu khoản chi lặp, kế toán phải đối soát và khách có thể bị yêu cầu hoàn trả. | Guard hiện tại từ chối khi đã thấy bản ghi cùng ticket/đơn. Chưa thấy cơ chế kiểm tra và ghi nguyên tử/chống trùng giao dịch trong `lab10/tools.py`; kiểm tra tuần tự không chứng minh an toàn khi đồng thời. | Dùng khóa chống trùng cho cùng yêu cầu nghiệp vụ và kiểm tra-ghi nguyên tử tại tầng thực thi khi triển khai thật; trong lab kiểm tra gửi lại và ghi rõ giới hạn chưa kiểm thử đồng thời. Tầng: chặn. |
+
+**Nhánh dự đoán để đối chiếu với trace của nhóm:** PERTURBED — hai lượt xử lý đồng thời cùng yêu cầu. Workspace hiện chưa có thư mục `runs/`; cần đối chiếu B2/trace với Kỹ sư cổng để xác nhận đây là nhánh bàn chưa thấy và ghi mã lần chạy, không coi giả thuyết này là sự cố đã quan sát.
 
 Không bắt buộc điền đủ năm dòng. Bắt buộc: **ít nhất ba dòng, trong đó một dòng là nhánh bàn chưa thấy trên trace**.
 
@@ -188,8 +192,8 @@ Không bắt buộc điền đủ năm dòng. Bắt buộc: **ít nhất ba dòn
 
 | Thành phần | Guideword | Lệch cụ thể | Hậu quả, cho ai | Cổng đề xuất: code hay con số nào trong `config/operating_gates.json` |
 |---|---|---|---|---|
-| | | | | |
-| | | | | |
+| Người duyệt khoản hoàn | INCAPABLE | Một người trực chỉ xử lý được 6 ca/giờ theo `ops_facts`; khi lượng ca cần duyệt vượt công suất kéo dài, thời gian chờ có thể vượt SLA nhận xử lý 60 phút trong `ops_limits`. | Khách chờ lâu; trưởng ca quá tải và có nguy cơ duyệt vội; hàng chờ và chi phí xử lý tăng. | Đặt `operations.reviewers_on_shift`, `review_capacity_per_hour` theo công suất thực; `max_queue_wait_minutes` không vượt SLA 60 phút. Viết ngưỡng gọi thêm người, thu hẹp pilot hoặc tắt hoàn tự động trong runbook; giao PIC và kênh báo qua `operations.pic`, `alert_channel`, `stop_conditions`. |
+| Ngân sách hoàn tự động và trách nhiệm giám sát | WRONG | Trần cấu hình không khớp ngân sách Finance 2.000.000 đồng/ngày trong `ops_limits`, hoặc người trực tưởng đã đặt trần trong khi `business.daily_refund_cap_vnd` vẫn là `null`. | Có nguy cơ chi vượt ngân sách nếu thiếu kiểm soát khác; Finance và kế toán phải xử lý chênh lệch. Guard hiện tại đã có kiểm tra ngân sách từ `ops_limits`, nhưng không thay thế việc chốt trách nhiệm và cấu hình của nhóm. | Chốt `business.daily_refund_cap_vnd` không vượt ngân sách đã được Finance đồng ý; kiểm tra tổng đã hoàn trước khoản tiếp theo, vượt trần thì chuyển người. Ghi người theo dõi, điều kiện dừng và kênh báo trong `operations.pic`, `stop_conditions`, `alert_channel`; phối hợp vai Sản phẩm và kinh doanh để thống nhất số. |
 
 **Ví dụ mẫu (`issue_refund`, đừng chép):** tham số `amount_vnd` · WRONG · số tiền tính từ số ngày khách tự khai · LogiX mất
 tiền, hãng bị kéo theo một lỗi · hiện chỉ có trần "không vượt tổng tiền đơn" · cổng ghi so với quyền lợi tính từ DB (chặn).
@@ -208,15 +212,15 @@ Trạng thái: **Xong** (có bằng chứng) · **Chưa** · **Không áp dụng
 
 | # | Nhóm việc | Bằng chứng lấy từ đâu (đã có sẵn trong lab) | Mục cần kiểm tra | Trạng thái | Bằng chứng | PIC |
 |---|---|---|---|---|---|---|
-| 1 | Chất lượng | Report `lab10.eval` (mã lần chạy) + bảng soát lỗi (Phiếu B mục B2) | | | | |
-| 2 | Dữ liệu | Bản đồ dữ liệu (Phiếu B mục B3, câu 2.3): trường nào là nguồn sự thật, trường nào là bản sao | | | | |
-| 3 | Bảo mật | Một vòng HAZOP với guideword PERTURBED (Phiếu B mục B4): chữ nào đi vào model mà không do LogiX viết | | | | |
-| 4 | Quyền hạn | `config/switches.json` + guard trước lệnh ghi; thẻ S2, S8 có thêm mục mức kiểm soát (Phiếu C mục C3) | | | | |
-| 5 | Hiệu năng, hạ tầng | Đội tự ước tính; HAZOP guideword INCAPABLE: LLM không trả lời thì sao; số người duyệt và số ca mỗi giờ | | | | |
-| 6 | Chi phí | Khối "kinh doanh và vận hành" của report: chi phí mỗi ticket so với làm tay, ROI, tiền LLM ticket đắt nhất; `config/operating_gates.json` mục `business` | | | | |
-| 7 | Vận hành | Runbook (Phiếu B mục B7.5–B7.6) + `config/operating_gates.json` mục `operations` (PIC, người duyệt, số người trực, điều kiện dừng, kênh báo tin) + metric trong `monitors.py` | | | | |
-| 8 | Con người, pháp lý | Bên thứ ba (hãng, tài xế, shop, người nhận quà, người đứng tên duyệt); `config/operating_gates.json` mục `legal`; thẻ S6, S7, S8 có mục riêng ở Phiếu C mục C3 | | | | |
-| 9 | Quyết định | Câu tiêu chí (Phiếu A mục A4) + hash Bản tiêu chí đã ký + quyết định Gate 1 (Phiếu B mục B8, Phiếu C mục C12) | | | | |
+| 1 | Chất lượng | Report `lab10.eval` (mã lần chạy) + bảng soát lỗi (Phiếu B mục B2) | Đạt các ngưỡng chất lượng/an toàn đã ký; phân loại lỗi T-002@55 và kiểm tra hồi quy sau sửa. | Chưa | B0–B2 chưa điền; workspace chưa có report hoặc mã lần chạy để đối chiếu các ngưỡng trong config/acceptance_criteria.json. | Nguyễn Công Huy |
+| 2 | Dữ liệu | Bản đồ dữ liệu (Phiếu B mục B3, câu 2.3): trường nào là nguồn sự thật, trường nào là bản sao | Xác định nguồn sự thật của tracking, policy, approvals, lịch sử hoàn; xử lý thiếu dữ liệu và dự báo drift. | Chưa | data/world.json có dữ liệu nguồn nhưng B3 còn trống, chưa có bản đồ dữ liệu và ví dụ drift của nhóm. | Phạm Ngọc Long |
+| 3 | Bảo mật | Một vòng HAZOP với guideword PERTURBED (Phiếu B mục B4): chữ nào đi vào model mà không do LogiX viết | Đầu vào khách tự nhập không được biến thành lệnh vượt quyền; yêu cầu gửi lặp không tạo khoản hoàn lặp. | Chưa | B4 có phân tích PERTURBED; lab10/guards.py có nhánh duplicate_refund. Chưa có trace kiểm chứng gửi lặp hoặc đầu vào cài lệnh; giả thuyết đồng thời ở B4 chưa được kiểm thử. | Nguyễn Trọng Khiêm |
+| 4 | Quyền hạn | `config/switches.json` + guard trước lệnh ghi; thẻ S2, S8 có thêm mục mức kiểm soát (Phiếu C mục C3) | Mỗi thao tác ghi đi qua guard và công tắc; khoản cần duyệt phải dùng phê duyệt hợp lệ, đúng giao dịch và người được giao quyền. | Chưa | config/switches.json có bốn công tắc; lab10/guards.py có kiểm tra phê duyệt. operations.approver_id còn trống, B7.1 chưa có mã lần chạy; chưa chứng minh cổng chặn đúng. | Nguyễn Trọng Khiêm |
+| 5 | Hiệu năng, hạ tầng | Đội tự ước tính; HAZOP guideword INCAPABLE: LLM không trả lời thì sao; số người duyệt và số ca mỗi giờ | Có phương án khi LLM lỗi/quota và khi ca chuyển người vượt công suất; kiểm tra công suất duyệt với SLA 60 phút. | Chưa | B4 đã nêu quá tải người duyệt; data/world.json: một người duyệt 6 ca/giờ. Chưa có phương án LLM lỗi trong runbook, công suất/hạn chờ chưa chốt trong config, chưa có report hàng chờ. | Nguyễn Công Huy |
+| 6 | Chi phí | Khối "kinh doanh và vận hành" của report: chi phí mỗi ticket so với làm tay, ROI, tiền LLM ticket đắt nhất; `config/operating_gates.json` mục `business` | Đối chiếu chi phí/ticket ≤ 7.000 đồng, ROI ≥ 0,4 theo tiêu chí đã ký và tổng hoàn tự động không vượt ngân sách Finance. | Chưa | config/acceptance_criteria.json đã đặt ngưỡng; B4 nêu ngân sách 2.000.000 đồng/ngày từ ops_limits. business còn các trần null, B7.4 còn trống và chưa có report chi phí/ROI. | Phạm Ngọc Long |
+| 7 | Vận hành | Runbook (Phiếu B mục B7.5–B7.6) + `config/operating_gates.json` mục `operations` (PIC, người duyệt, số người trực, điều kiện dừng, kênh báo tin) + metric trong `monitors.py` | Chốt PIC, người duyệt, người trực, công suất, giới hạn chờ, kênh cảnh báo và quy trình dừng/bật lại, kể cả giờ cao điểm. | Chưa | B7.5–B7.6 còn trống; operations.pic, approver_id, alert_channel trống, stop_conditions rỗng, công suất và hạn chờ null. monitors.py mới có escalation_rate mặc định. | Trần Trọng Đạt |
+| 8 | Con người, pháp lý | Bên thứ ba (hãng, tài xế, shop, người nhận quà, người đứng tên duyệt); `config/operating_gates.json` mục `legal`; thẻ S6, S7, S8 có mục riêng ở Phiếu C mục C3 | Bảo vệ dữ liệu gửi hãng, ngăn ghi lỗi thiếu căn cứ; có người tiếp nhận phản ánh của hãng/shop/người nhận và người duyệt đứng tên. | Chưa | Guard hiện có kiểm tra căn cứ lỗi hãng và lọc trường thông báo; legal vẫn để danh sách chặn rỗng và yêu cầu nguyên nhân false. Chưa có report PII/lỗi oan hoặc runbook tiếp nhận phản ánh. Telemetry phản ánh ở A2 mới là thiết kế, chưa có nguồn thu thập. | Trần Trọng Đạt |
+| 9 | Quyết định | Câu tiêu chí (Phiếu A mục A4) + hash Bản tiêu chí đã ký + quyết định Gate 1 (Phiếu B mục B8, Phiếu C mục C12) | Quyết định v1 khớp tiêu chí đã ký, bằng chứng đánh giá và rủi ro còn lại; chỉ chọn Tiếp tục khi đủ điều kiện. | Chưa | Phiếu A A4–A5 và config/acceptance_criteria.lock đã có; B8 còn trống, chưa có report base/prepared hay bản chốt config/round1.lock. Quyết định v2 sẽ bổ sung ở Phiếu C sau sự cố. | Phạm Ngọc Long |
 
 Ô "Chưa" có rủi ro cao → chuyển thành một dòng Risk register (Phiếu C mục C10).
 
