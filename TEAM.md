@@ -28,7 +28,7 @@ Mỗi thành viên tự viết một mục bên dưới (chép mẫu, đổi ti�
 
 ### Phần việc phụ trách
 
-Trưởng nhóm · vai **Sản phẩm và kinh doanh**. Đề: câu 1.1, 1.5, 1.6 (Phiếu A mục A1, A3, A4, A5), câu 2.3 (Phiếu B mục B3), câu 2.9 (B7.4), quyết định v1 (B8); điều phối cả bàn, máy chạy chính cho mọi lần `eval` / `grade` / `check_submission`. File: `config/acceptance_criteria.json`, `config/operating_gates.json` mục `business`, `TEAM.md`.
+Trưởng nhóm · vai **Sản phẩm và kinh doanh**. Đề: câu 1.1, 1.5, 1.6 (Phiếu A mục A1, A3, A4, A5), câu 2.3 (Phiếu B mục B3), câu 2.9 (B7.4), quyết định v1 (B8); vòng 2: câu 3.0 (Phiếu C mục C0, C1), câu 3.4 (C6), câu 3.5 (C7, sửa phạm vi pilot); điều phối cả bàn, máy chạy chính cho mọi lần `eval` / `grade` / `check_submission`. File: `config/acceptance_criteria.json`, `config/operating_gates.json` mục `business`, `TEAM.md`.
 
 ### Đóng góp cụ thể
 
@@ -38,12 +38,16 @@ Trưởng nhóm · vai **Sản phẩm và kinh doanh**. Đề: câu 1.1, 1.5, 1.
 - Đặt cổng kinh doanh (B7.4): trần hoàn ngày 1.000.000đ, ngân sách 1.500đ/ticket, phạm vi `all`, ROI 0,4; kiểm không regression.
 - Quyết định v1 **Thu hẹp** (B8), dựa trên mốc base và prepared.
 - Gom quy trình git của bàn (hợp nhất nhánh, xử lý xung đột) và nhận `runs/` về một máy chạy để nhật ký lần chạy liền mạch.
+- **Vòng 2 (thẻ S4):** chạy mốc prepared (`grade --incident S4`) trước khi sửa; đối chiếu pre-mortem (C1).
+- Phân tích nguyên nhân hàng chờ: 21 ca chuyển người đều đúng (15 hàng vỡ / thất lạc, 6 vượt ngân sách ngày sale), nên nút thắt là công suất người duyệt, không phải cổng chặn thừa.
+- Thử hai phương án, mỗi lần đổi một thứ: thêm 1 người duyệt (hết ùn nhưng chi phí 7.157đ > trần đã ký 7.000đ → bỏ) và thu hẹp pilot về HN, HCM (0 ca ùn, chi phí 4.987đ, ROI 1,01 → chọn).
+- Vẽ fault tree trước khi sửa (C6, ba nhánh ở ba tầng) và bảng sửa (C7: giảm hay ngăn từng nhánh).
 
 ### Bằng chứng
 
-- Commit: `9c9fdec` (Sign acceptance criteria), `72e64c7`, `0979d00` (Phiếu A), `18dd45b` (B6, B8, C0, C1), `e555f23` (B7.4, cổng `business`), `8eb7259` (giữ byte bản chốt vòng 1 khớp `round1.lock`).
-- Lần chạy: `R-base-prepared-20261119-162341-f7bb40` (bằng chứng v1), `R-base-after-20261119-170400-a63e67` và `R-S4-after-20261119-170410-a63e67` (sau khi điền `business`), `R-S4-grade-20261119-164200-22b003` (mốc prepared của thẻ S4).
-- Phiếu: A1, A3, A4, A5; B3, B7.4, B8.
+- Commit: `9c9fdec` (Sign acceptance criteria), `72e64c7`, `0979d00` (Phiếu A), `18dd45b` (B6, B8, C0, C1), `e555f23` (B7.4, cổng `business`), `8eb7259` (giữ byte bản chốt vòng 1 khớp `round1.lock`), `c4366ea` (vòng 2: thu hẹp pilot HN, HCM; C0, C6, C7), `d05a9e5` (C8 cập nhật số).
+- Lần chạy: `R-base-prepared-20261119-162341-f7bb40` (bằng chứng v1), `R-base-after-20261119-170400-a63e67` và `R-S4-after-20261119-170410-a63e67` (sau khi điền `business`), `R-S4-grade-20261119-164200-22b003` (mốc prepared của thẻ S4), `R-S4-after-20261119-171703-0b04b2` (phương án 2 người, bị bỏ), `R-S4-after-20261119-171703-504920` (phương án HN, HCM), `R-base-after-20261119-171721-504920` (không regression), `R-S4-grade-20261119-171721-504920` (**PASS-VISIBLE**).
+- Phiếu: A1, A3, A4, A5; B3, B6, B7.4, B8; C0, C1, C6, C7.
 
 ### Dùng AI
 
@@ -56,7 +60,7 @@ Dùng Claude (Claude Code) để đọc repo, soạn nháp câu trả lời tron
 
 ### Phần việc phụ trách
 
-Vai **Vận hành và pháp lý**. Đề: câu 1.2, 1.4 (Phiếu A mục A1, A2), câu 2.4 (Phiếu B mục B4 HAZOP vòng 1, B5 checklist 9 nhóm), câu 2.10 (B7.5 runbook 1–3, B7.6 giờ cao điểm). File: `config/operating_gates.json` mục `operations`, `legal`.
+Vai **Vận hành và pháp lý**. Đề: câu 1.2, 1.4 (Phiếu A mục A1, A2), câu 2.4 (Phiếu B mục B4 HAZOP vòng 1, B5 checklist 9 nhóm), câu 2.10 (B7.5 runbook 1–3, B7.6 giờ cao điểm); vòng 2: câu 3.7 (Phiếu C mục C9 fault tree sau khi sửa, C10 risk register, C11 checklist và runbook 4–5). File: `config/operating_gates.json` mục `operations`, `legal`.
 
 ### Đóng góp cụ thể
 
@@ -64,11 +68,16 @@ Vai **Vận hành và pháp lý**. Đề: câu 1.2, 1.4 (Phiếu A mục A1, A2)
 - HAZOP vòng 1 trên `issue_refund` (INVALID, INCOMPLETE, PERTURBED) và hai dòng ngoài kỹ thuật (người duyệt INCAPABLE, ngân sách WRONG); checklist 9 nhóm có PIC từng dòng.
 - Cổng vận hành và pháp lý: PIC `NV-TUNG`, người duyệt `NV-HANH`, 6 ca/giờ, chờ tối đa 60 phút, 5 điều kiện dừng, kênh `#van-hanh-tro-ly`; chặn `recipient_contact`, `customer_note` gửi hãng; bắt buộc nguyên nhân khi ghi lỗi hãng.
 - Runbook 1–3 (người chịu trách nhiệm, tín hiệu xanh/vàng/đỏ, dừng trong 5 phút do NV-TUNG bấm) và mục Giờ cao điểm theo dữ liệu thẻ S4.
+- **Vòng 2 (thẻ S4):** cập nhật Runbook 1 và Giờ cao điểm khớp phạm vi mới (HN, HCM; DN, CT làm tay).
+- Fault tree sau khi sửa (C9): nút `VÀ [gate … hỏng]` cho từng nhánh, ghi rõ nhánh nào ngăn, nhánh nào chỉ giảm, nhánh nào còn hở.
+- Risk register (C10): tải HN, HCM tăng tiếp hoặc luồng làm tay DN, CT thiếu người; PIC NV-TUNG; dấu hiệu `queue_wait_max_min`, `queue_stuck`.
+- Cập nhật checklist 9 nhóm với bằng chứng mới và PIC (C11); runbook 4 (sau sự cố) và runbook 5 (ba kịch bản tuần đầu).
 
 ### Bằng chứng
 
-- Commit: `e6db255`, `a2ebead`, `82d115c` (1.2, 1.4), `04f96ee` (B4, B5), `5653d50`, `7abac16` (B7.5, B7.6, cổng `operations` / `legal`).
-- Phiếu: A1 câu 1.2, A2 cột telemetry; B4, B5, B7.5, B7.6.
+- Commit: `e6db255`, `a2ebead`, `82d115c` (1.2, 1.4), `04f96ee` (B4, B5), `5653d50`, `7abac16` (B7.5, B7.6, cổng `operations` / `legal`), `2225525` (C9, C10, C11; runbook khớp phạm vi HN, HCM).
+- Lần chạy dẫn trong phiếu: `R-S4-grade-20261119-171721-504920`, `R-S4-after-20261119-171721-504920`, `R-base-after-20261119-171721-504920`.
+- Phiếu: A1 câu 1.2, A2 cột telemetry; B4, B5, B7.5, B7.6; C9, C10, C11.
 
 ### Dùng AI
 ...
@@ -89,6 +98,7 @@ Vai **Kỹ sư cổng: chạy và đánh giá**. Đề: câu 1.3 (Phiếu A mụ
 - Lần chạy đầu và bảng soát lỗi `T-002@55` (hai lỗi chìm: hoàn sai 20.000đ, ghi oan VNX).
 - Hai bước tránh rò rỉ dữ liệu; behavioral test với hai ticket hiểm (`O-1002`, `O-1019`).
 - Phân tích thẻ S4: soát lỗi `S4-05@11`, `S4-08@11`, `S4-33@11`; HAZOP của thẻ; specification và giả định môi trường (LLM sẵn sàng giờ cao điểm).
+- Đề xuất hai chỉ số theo dõi từ bảng soát lỗi thẻ: `fail_open_write_rate` (thành `fail_open_rate` của Khiêm) và `queue_over_sla_rate`.
 
 ### Bằng chứng
 
@@ -106,19 +116,20 @@ Vai **Kỹ sư cổng: chạy và đánh giá**. Đề: câu 1.3 (Phiếu A mụ
 
 ### Phần việc phụ trách
 
-Vai **Kỹ sư cổng: lập trình**. Đề: câu 2.6 (Phiếu B mục B7.1), câu 3.5–3.6 (sửa cổng vòng 2, chỉ số theo dõi mới). File: `lab10/guards.py`, `lab10/monitors.py`.
+Vai **Kỹ sư cổng: lập trình**. Đề: câu 2.6 (Phiếu B mục B7.1), câu 3.5–3.6 (sửa cổng vòng 2, chỉ số theo dõi mới; Phiếu C mục C8). File: `lab10/guards.py`, `lab10/monitors.py`.
 
 ### Đóng góp cụ thể
 
 - Bảng cổng phòng ngừa vòng 1 (B7.1).
-- Chỉ số theo dõi mới `fail_open_rate` trong `lab10/monitors.py`: tỉ lệ trial mà trợ lý rơi về `llm_fallback` chế độ `fail_open`; bằng 0,0 trên bộ nền và 0,185 trên gói S4 (sáng đèn khi sự cố xảy ra).
+- Chỉ số theo dõi mới `fail_open_rate` trong `lab10/monitors.py`: tỉ lệ trial mà trợ lý rơi về `llm_fallback` chế độ `fail_open`; bằng 0,0 trên bộ nền, 0,185 trên gói S4 ở mốc base và 0,24 ở mốc after (sáng đèn khi sự cố xảy ra).
+- Viết đặc tả chỉ số (C8): thước đo, dữ liệu, cách tính, ngưỡng báo động > 0,05 theo cửa sổ 60 phút, điểm mù.
 - Nhánh vòng 2 trong `write_gate` khi `issue_refund`: đơn giao đúng hạn (`delay == 0`) thì từ chối thay vì chuyển người.
 
 ### Bằng chứng
 
-- Commit: `fd6677f` (`monitors.py`, `guards.py`, B7.1).
-- Lần chạy: `R-S4-grade-20261119-171138-618467` (`6 monitor ✅`, `5 regression ✅`).
-- Phiếu: B7.1.
+- Commit: `fd6677f` (`monitors.py`, `guards.py`, B7.1), `1703c17` (C8).
+- Lần chạy: `R-S4-grade-20261119-171138-618467` (`6 monitor ✅`, `5 regression ✅`), `R-S4-grade-20261119-171721-504920` (PASS-VISIBLE, `fail_open_rate` 0,0 → 0,24).
+- Phiếu: B7.1; C8.
 
 ### Dùng AI
 ...
