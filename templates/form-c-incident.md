@@ -333,14 +333,14 @@ Thẻ S5 dùng mục này cho một con số kinh doanh: chi phí mỗi ticket t
 
 | | Chỉ số theo dõi mới của bàn |
 |---|---|
-| **Tên trong `MONITORS`** | |
-| **Bước / hành vi được đo** | |
-| **Thước đo** (một câu, có đơn vị) | |
-| **Dữ liệu** (trường nào của trial, không có nhãn) | |
-| **Cách tính** (công thức, mẫu số, cách xử lý ca thiếu dữ liệu) | |
-| **Khung thời gian / ngưỡng báo động** | |
-| **Điểm mù** (chỉ số này KHÔNG thấy gì) | |
-| Giá trị trên bộ nền · trên thẻ (đọc mục `monitor` của report) | |
+| **Tên trong `MONITORS`** | `fail_open_rate` |
+| **Bước / hành vi được đo** | Bước kiểm tra chính sách (`policy_check`) khi model gặp lỗi nghẽn mạng (429 RateLimit) và kích hoạt fallback `fail_open` |
+| **Thước đo** (một câu, có đơn vị) | Tỉ lệ ticket kích hoạt cơ chế fallback `fail_open` do sự cố nhà cung cấp LLM không phản hồi (đơn vị: tỉ lệ từ 0.0 đến 1.0) |
+| **Dữ liệu** (trường nào của trial, không có nhãn) | Trường `events` của từng trial, tìm sự kiện có `type == "llm_fallback"` và `mode == "fail_open"` |
+| **Cách tính** (công thức, mẫu số, cách xử lý ca thiếu dữ liệu) | `(Số trial có sự kiện llm_fallback mode fail_open) / max(1, Tổng số trial)`. Danh sách rỗng trả về 0.0 |
+| **Khung thời gian / ngưỡng báo động** | Giám sát cửa sổ trượt 60 phút và theo ca 480 phút; ngưỡng báo động: `fail_open_rate > 0.05` (quá 5% số vé trong giờ) |
+| **Điểm mù** (chỉ số này KHÔNG thấy gì) | Không thấy các ca lỗi 429 nhưng retry lần 2 thành công; không đo được lệnh hoàn tiền sau fallback có bị `write_gate` chặn hay không |
+| Giá trị trên bộ nền · trên thẻ (đọc mục `monitor` của report) | Bộ nền: `0.0` (0%) · Thẻ S4: `0.1854` (18.54% ở mốc before và after) |
 
 ---
 
