@@ -326,7 +326,7 @@ nguyên nhân trong tracking). Rồi viết runbook dưới đây **khớp với
 
 *Runbook là tờ giấy người trực ca cầm lúc 23h khi có chuyện. Nó trả lời: nhìn con số nào, ngưỡng nào thì làm gì, ai được quyết.
 Phần 1–3 và mục Giờ cao điểm viết ở vòng 1. Phần 4–5 viết ở vòng 2 (Phiếu C mục C11). Mọi con số phải khớp `config/operating_gates.json` và report.*
-*Mỗi phần trả lời bốn câu hỏi: ai chịu trách nhiệm, nhìn gì, ngưỡng nào, làm gì.* **Người viết (vai Vận hành và pháp lý):** ______
+*Mỗi phần trả lời bốn câu hỏi: ai chịu trách nhiệm, nhìn gì, ngưỡng nào, làm gì.* **Người viết (vai Vận hành và pháp lý):** Trần Trọng Đạt
 
 #### Runbook 1 · Ai chịu trách nhiệm
 
@@ -337,7 +337,7 @@ Phần 1–3 và mục Giờ cao điểm viết ở vòng 1. Phần 4–5 viết
 | Người giữ công tắc tắt từng thao tác ghi | Lê Thanh Tùng — NV-TUNG | Tắt tool liên quan trong config/switches.json, xác minh đã ngừng ghi và ghi thời điểm; không tự nới ngân sách Finance. | #van-hanh-tro-ly. |
 | Người nhận khiếu nại của bên thứ ba (hãng, shop, người nhận quà) | Phạm Kiều Oanh — NV-OANH (đầu mối đề xuất) | Tiếp nhận phản ánh, đối chiếu giao dịch với hãng/shop; phối hợp Hạnh xử lý phản ánh người nhận, báo Tùng nếu có dấu hiệu an toàn. Không mặc định có quyền duyệt hoàn. | Kênh hỗ trợ/đối soát cần tổ chức; báo nội bộ qua #van-hanh-tro-ly. |
 
-Số người trực duyệt mỗi ca: ___ · Mỗi giờ duyệt được: ___ ca · Phạm vi pilot: ______ (tất cả / kho nào / bao nhiêu phần trăm)
+Số người trực duyệt mỗi ca: 1 (NV-HANH) · Mỗi giờ duyệt được: 6 ca · Phạm vi pilot: tất cả, theo `business.pilot_scope.mode = "all"` hiện tại; đây là cấu hình cần đánh giá, chưa chứng minh đủ công suất cho S4 (tất cả / kho nào / bao nhiêu phần trăm)
 
 #### Runbook 2 · Nhìn con số nào, ngưỡng nào thì làm gì
 
@@ -355,12 +355,12 @@ Mỗi dòng một tín hiệu. Cột "Lấy ở đâu" phải là một dòng tr
 
 #### Runbook 3 · Điều kiện dừng và cách dừng
 
-- Dừng một phần (tắt một thao tác ghi, thu hẹp phạm vi) khi: …
-- Dừng hẳn khi: …
-- Cách dừng, từng bước (công tắc nào trong `config/switches.json`, dòng nào trong `config/operating_gates.json`): …
-- Từ tín hiệu đỏ đến lúc dừng xong tối đa ____ phút; người bấm: ____
-- Khi đã dừng, ticket đang chờ đi đâu, ai xử lý: …
-- Điều kiện để bật lại, ai ký: …
+- Dừng một phần (tắt một thao tác ghi, thu hẹp phạm vi) khi: xác minh có từ 1 lỗi hãng oan thì tắt `file_carrier_fault`; từ 1 lần lộ PII thì tắt `notify_carrier`; tiền hoàn sai > 0 thì tắt `issue_refund`. Khi chờ người duyệt đạt 60 phút hoặc có từ 1 ca ùn, Tùng phối hợp Hạnh bổ sung công suất, thu hẹp hoặc tạm dừng luồng gây ùn. Khoản làm vượt hạn mức hoàn tự động cần phê duyệt hợp lệ trước khi ghi, không tự nâng trần Finance.
+- Dừng hẳn khi: không còn đường xử lý tự động an toàn thì Tùng tạm dừng toàn bộ thao tác ghi tự động, chuyển sang quy trình thủ công có người nhận. Nếu lỗi oan hoặc lộ PII tái diễn sau 2 vòng sửa thì dừng tự động hóa phần đó theo `stop_condition` đã ký. Quyết định Gate 1 “Dừng” áp dụng đúng `decision_rule`: từ hai chỉ số an toàn > 0 sau khi đã sửa, hoặc chi phí/ticket vẫn từ 10.000 đồng trở lên sau thu hẹp; không tự thay tiêu chí đã ký.
+- Cách dừng, từng bước (công tắc nào trong `config/switches.json`, dòng nào trong `config/operating_gates.json`): (1) Hạnh/Oanh báo tín hiệu và bằng chứng vào `operations.alert_channel`; (2) Tùng đối chiếu `operations.stop_conditions`, đặt tool liên quan thành `"off"` trong `config/switches.json`; nếu dừng toàn bộ ghi thì tắt cả `issue_refund`, `file_carrier_fault`, `notify_carrier`, `send_reply`, phản hồi khách qua nhân viên; (3) kiểm tra trace hoặc lượt thử mô phỏng xác nhận không còn ghi từ tool đã tắt, lưu thời điểm; (4) giao danh sách ca tồn cho Hạnh. Nếu thu hẹp, thống nhất với vai kinh doanh và sửa `business.pilot_scope`, giữ độ phủ > 0 khi tiếp tục pilot; bố trí người nhận phần ngoài phạm vi. Chuỗi `stop_conditions` là quy trình cho người thực hiện, không phải công tắc tự động.
+- Từ tín hiệu đỏ đến lúc dừng xong tối đa 5 phút (mục tiêu phản ứng đề xuất); người bấm: Lê Thanh Tùng — NV-TUNG
+- Khi đã dừng, ticket đang chờ đi đâu, ai xử lý: giữ nguyên trong danh sách xử lý thủ công do Hạnh — NV-HANH điều phối, bảo toàn thời điểm vào hàng và ưu tiên ca gần/quá SLA. Oanh — NV-OANH đối chiếu sổ cái trước khi xử lý lại để tránh hoàn lặp; Tùng huy động người hỗ trợ đủ thẩm quyền. Nhân viên báo khách tình trạng và thời gian dự kiến; không coi tắt tự động hoặc hẹn ngày mai là đã xử lý xong hàng chờ.
+- Điều kiện để bật lại, ai ký: nguyên nhân đã được xử lý; có report S4 và bộ nền sau sửa với mã lần chạy, không làm hỏng ca trước đúng; các ngưỡng an toàn bằng 0, ngưỡng bắt buộc và business_ops đạt, không còn dòng vượt trần cho phạm vi dự kiến. Hạnh xác nhận đủ công suất và người duyệt, Oanh xác nhận đối soát, Tùng — NV-TUNG ký cho bật lại các tool đã kiểm chứng an toàn. Không sửa tiêu chí đã ký hoặc bản chốt vòng 1 để làm kết quả đạt.
 
 ### B7.6 · Giờ cao điểm (bắt buộc với thẻ S4; các thẻ khác nên có)
 
