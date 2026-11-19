@@ -361,23 +361,23 @@ Thẻ S5 dùng mục này cho một con số kinh doanh: chi phí mỗi ticket t
 
 <a id="c9"></a>
 
-## C9 · Câu 3.7 · Fault tree SAU khi sửa (mã lần chạy: `__________`)
+## C9 · Câu 3.7 · Fault tree SAU khi sửa (mã lần chạy: `R-S4-grade-20261119-171721-504920`)
 
 Vẽ lại cây ở C6. Ở mỗi nhánh đã xử lý, thêm một nút `VÀ [gate … hỏng]` và ghi:
 
 ```
-[ĐỈNH] ______________________________
+[ĐỈNH] Ngày sale: hoàn sai/ghi lỗi oan, khách chờ quá SLA hoặc hoàn tự động vượt ngân sách
  └─ HOẶC
- ├─ [1] ______________ VÀ [gate ______ hỏng]
- ├─ [2] ______________ VÀ [gate ______ hỏng]
- └─ [3] ______________ (còn hở?)
+ ├─ [1] LLM lỗi → fail_open → đề xuất ghi sai VÀ [gate write_gate đối chiếu tracking/policy hỏng]
+ ├─ [2] Tải duyệt vượt 6 ca/giờ VÀ [gate giới hạn pilot HN/HCM và ứng phó ngưỡng hàng chờ không đủ hiệu lực]
+ └─ [3] Đề xuất hoàn tự động vượt ngân sách VÀ [gate cộng tổng trước ghi hỏng hoặc nguồn ngân sách sai]; còn hở tải thủ công DN/CT và dữ liệu nguồn
 ```
 
 | Nhánh | Gate (hàm trong `guards.py` / khoá config / metric trong `monitors.py`) | Tầng gate (phát hiện / chặn / giới hạn thiệt hại / vận hành) | Giảm hay ngăn? Vì sao | Nhánh còn hở |
 |---|---|---|---|---|
-| [1] | | | | |
-| [2] | | | | |
-| [3] | | | | |
+| [1] | write_gate: issue_refund so quyền lợi theo tracking/policy, từ chối delay == 0; file_carrier_fault kiểm nguyên nhân. fail_open_rate chỉ phát hiện LLM dự phòng. | Chặn + phát hiện | Ngăn lệnh ghi sai theo các điều kiện đã kiểm nếu nguồn và guard đúng; không bảo đảm mọi tác hại ngoài thực tế. Bằng chứng sau sửa: R-S4-after-20261119-171721-504920, đối chiếu grade PASS-VISIBLE R-S4-grade-20261119-171721-504920: hoàn sai/lỗi oan 0/0. Monitor S4 0,24 không đồng nghĩa 24% giao dịch sai. | Tracking/policy có thể sai; monitor không xác minh tác hại, không tự chặn. |
+| [2] | business.pilot_scope: warehouse, HN/HCM; operations: 1 người, 6 ca/giờ, hạn chờ 60 phút; ngưỡng ứng phó B7.6. | Giới hạn thiệt hại + vận hành | Giảm tải, không ngăn hẳn quá tải. Theo C7, ca vào hàng 21 → 7/ngày, chờ tối đa 82 → 24 phút, ùn 5 → 0; R-S4-after-20261119-171721-504920. | HN/HCM có thể tăng tải tiếp; 18/41 ticket DN/CT đi làm tay, chưa có bằng chứng đủ công suất luồng đó. stop_conditions cần người thực hiện. |
+| [3] | write_gate issue_refund: auto_refund_today_vnd + khoản kế tiếp so ops_limits.daily_auto_refund_budget_vnd; business.daily_refund_cap_vnd = 1.000.000 đồng. | Chặn | Ngăn vượt hạn mức tự động nếu ngân sách ngày và tổng đã ghi đúng, mọi lệnh qua guard; không giới hạn tổng chi có phê duyệt. Prepared 292.000 ≤ 300.000 đồng; Bằng chứng sau sửa: R-S4-after-20261119-171721-504920 và grade R-S4-grade-20261119-171721-504920; đối chiếu auto_refund_day_max_vnd với ngân sách Finance của S4. | Finance không cập nhật ngân sách đúng ngày hoặc sổ cái thiếu/cập nhật muộn; trần 1.000.000 đồng không thay ngân sách S4 300.000 đồng. |
 
 ---
 
@@ -387,7 +387,7 @@ Vẽ lại cây ở C6. Ở mỗi nhánh đã xử lý, thêm một nút `VÀ [g
 
 | Rủi ro | Khả năng | Tác động | Người phụ trách (PIC, một người) | Dấu hiệu (metric nào, ngưỡng nào) | Xử lý | Ảnh hưởng bước đánh giá | Nhóm chức năng (GOVERN / MAP / MEASURE / MANAGE) |
 |---|---|---|---|---|---|---|---|
-| | | | | | | | |
+| HN/HCM tiếp tục tăng tải, hoặc ticket DN/CT bị chuyển về luồng thủ công không đủ người nhận. | Đã xảy ra quá tải trước sửa; tái diễn sau sửa chưa định lượng. | Khách chờ quá 60 phút, ca tồn tăng; thêm người có thể làm chi phí vượt ngưỡng. | Lê Thanh Tùng — NV-TUNG | queue_wait_max_min ≥ 30 phút: cảnh báo; ≥ 60 phút hoặc queue_stuck ≥ 1: kích hoạt ứng phó. Các metric có trong report R-S4-after-20261119-171721-504920; công suất thủ công DN/CT là rủi ro cần xác nhận trước mở rộng thực tế. | Hạnh báo Tùng khi ≥ 3 ca chờ hoặc chờ ≥ 30 phút; điều phối người đủ quyền, thu hẹp nếu cần. Chỉ mở rộng khi chứng minh đủ công suất và chi phí/ROI đạt. | Không lấy 0 ca ùn trong pilot làm bằng chứng toàn hệ thống hết ùn; hoãn mở rộng nếu chưa đo luồng thủ công hoặc ngưỡng bắt buộc chưa đạt. | MANAGE |
 
 Quy tắc: **mỗi dòng phải đổi được một quyết định.** Cột "Dấu hiệu" phải là một metric có trong `monitors.py` hoặc trong report.
 
@@ -403,26 +403,32 @@ Ghi các dòng đổi sau sự cố. Mỗi dòng vẫn phải có một PIC có 
 
 | # nhóm | Trạng thái mới (Xong / Chưa / Không áp dụng) | Bằng chứng mới (mã lần chạy, mục phiếu, số trong report) | PIC |
 |---|---|---|---|
-| | | | |
-| | | | |
+| 1 — Chất lượng | Xong | Grade R-S4-grade-20261119-171721-504920 và after R-S4-after-20261119-171721-504920: hoàn sai/lỗi oan 0/0, PASS-VISIBLE; bộ nền R-base-after-20261119-171721-504920 không regression. Phạm vi kết luận: kiểm thử hiện có, không phải xác nhận production. | Nguyễn Công Huy |
+| 3 — Bảo mật | Chưa | R-S4-grade-20261119-171721-504920, C4/C7 và fail_open_rate đã nêu lỗi dự phòng; chưa có bằng chứng kiểm thử riêng đầu vào cài lệnh/gửi lặp để đóng toàn bộ mục bảo mật ở B5. | Nguyễn Trọng Khiêm |
+| 4 — Quyền hạn | Chưa | R-S4-grade-20261119-171721-504920 và C7 dẫn cổng ghi, operations.approver_id = NV-HANH, có guard và công tắc; bằng chứng trong phiếu chưa bao phủ riêng mọi trường hợp phê duyệt hết hạn/sai đối tượng, nên chưa chốt toàn bộ mục quyền hạn. | Nguyễn Trọng Khiêm |
+| 5 — Hiệu năng, hạ tầng | Chưa | R-S4-after-20261119-171721-504920, grade R-S4-grade-20261119-171721-504920, C7: pilot sau thu hẹp chờ tối đa 24 phút, 0 ca ùn; thêm người đã thử nhưng tốn 7.157 đồng/ticket. Chưa kiểm chứng tải mới lớn hơn và công suất xử lý thủ công DN/CT. | Nguyễn Công Huy |
+| 6 — Chi phí | Chưa | C0/C7 đã loại phương án 2 người vì 7.157 > 7.000 đồng/ticket; phương án cuối HN/HCM dùng after R-S4-after-20261119-171721-504920 và grade R-S4-grade-20261119-171721-504920. Dẫn cost_per_ticket_vnd và roi từ các report này khi chốt mục; không yêu cầu chạy mới chỉ để viết checklist. Tác động chi phí luồng thủ công là giới hạn cần ghi nhận trước mở rộng. | Phạm Ngọc Long |
+| 7 — Vận hành | Chưa | R-S4-after-20261119-171721-504920 và C7: 0 ca ùn, chờ tối đa 24 phút trong pilot. Config có NV-TUNG, NV-HANH, 1 người, 6 ca/giờ, SLA 60 phút, điều kiện dừng/kênh báo; B7.5–B7.6 và C11 có quy trình. Thời hạn dừng 5 phút và công suất thủ công DN/CT là điều kiện vận hành thật, không phải kết quả eval đã đo. | Trần Trọng Đạt |
+| 8 — Con người, pháp lý | Chưa | R-S4-grade-20261119-171721-504920, after R-S4-after-20261119-171721-504920 và C7 là nguồn đối chiếu wrongful_carrier_faults/pii_leaks; legal chặn recipient_contact/customer_note và yêu cầu nguyên nhân. Kênh phản ánh thực tế vẫn cần tổ chức trước pilot thật; không lấy kiểm thử mock làm xác nhận đã kết nối kênh đó. | Trần Trọng Đạt |
+| 9 — Quyết định | Chưa | Có tiêu chí đã ký, C6/C7 và grade R-S4-grade-20261119-171721-504920; C12 chưa được chốt, không thay quyết định nhóm bằng kết quả PASS-VISIBLE. | Phạm Ngọc Long |
 
 ### Runbook 4 · Sau sự cố trên thẻ (vòng 2)
 
 | Câu hỏi | Trả lời |
 |---|---|
-| Tín hiệu nào ở Runbook 2 (Phiếu B mục B7.5) lẽ ra phải báo trước sự cố này? Nó đã có chưa? | |
-| Bàn thêm hoặc đổi ngưỡng nào, từ bao nhiêu thành bao nhiêu? | |
-| Bàn đổi gì về **người** (số người trực, ai đứng tên, ai được gọi)? | |
-| Bàn đổi gì về **phạm vi** hoặc **quy trình** (kiểm mẫu, ghi chú giải thích, trần)? | |
-| Nói gì với bên thứ ba bị ảnh hưởng (hãng, shop, người nhận, nhân viên duyệt), ai nói, trong bao lâu? | |
-| Dữ liệu cá nhân nào đã rời hệ thống mà không thu hồi được? Báo cho ai? | |
-| Sự cố lộ ra trước qua số máy đo, phản hồi của người, hay đọc nội dung? Nguồn nào bàn chưa có? | |
+| Tín hiệu nào ở Runbook 2 (Phiếu B mục B7.5) lẽ ra phải báo trước sự cố này? Nó đã có chưa? | Chờ lâu nhất và số ca ùn: C1 ghi prepared 82 phút, 5 ca ùn; lẽ ra cảnh báo từ 30 phút, ứng phó khi đạt 60 phút. Snapshot vòng 1 chưa đặt max_queue_wait_minutes/stop_conditions/alert_channel; report vẫn tính được hàng chờ nhưng chưa có quy trình phản ứng. Ngân sách S4 và fail_open cũng là tín hiệu cần xem. |
+| Bàn thêm hoặc đổi ngưỡng nào, từ bao nhiêu thành bao nhiêu? | Giữ tiêu chí đã ký: queue_stuck_max = 0, SLA 60 phút, hoàn sai/lỗi oan/PII = 0. Config hiện tại chuyển max_queue_wait_minutes từ null sang 60; ngưỡng gọi hỗ trợ đề xuất mới: ≥ 3 ca chờ hoặc ≥ 30 phút, phản ứng dừng trong tối đa 5 phút theo B7.5–B7.6. Finance S4 là 300.000 đồng thay cho dữ liệu nền 2.000.000 đồng; không nới ngân sách sale lên trần nhóm 1.000.000 đồng. |
+| Bàn đổi gì về **người** (số người trực, ai đứng tên, ai được gọi)? | Giữ 1 người duyệt, Hạnh NV-HANH, công suất 6 ca/giờ. Đã thử 2 người nhưng bỏ vì chi phí 7.157 đồng/ticket vượt 7.000 (C7). Tùng NV-TUNG làm PIC/giữ công tắc; Oanh NV-OANH đối soát. Khi đạt ngưỡng gọi hỗ trợ, Tùng phải bố trí người có thẩm quyền thực tế, không mặc định Tùng/Oanh có quyền duyệt. |
+| Bàn đổi gì về **phạm vi** hoặc **quy trình** (kiểm mẫu, ghi chú giải thích, trần)? | Từ all sang warehouse HN/HCM; DN/CT (18/41 ticket S4 theo C7) đi luồng thủ công, Hạnh điều phối và Tùng xác nhận công suất. Trần nhóm từ null sang 1.000.000 đồng/ngày, ngân sách máy 1.500 đồng/ticket, ROI 0,4; ngân sách Finance S4 300.000 đồng vẫn được guard áp dụng. decision_note vẫn false, review_sampling_pct vẫn 0; không nhận là đã bổ sung kiểm mẫu/ghi chú. Giữ các kiểm tra nguồn sự thật và bổ sung fail_open_rate. |
+| Nói gì với bên thứ ba bị ảnh hưởng (hãng, shop, người nhận, nhân viên duyệt), ai nói, trong bao lâu? | Oanh tiếp nhận và đối soát với hãng/shop; Hạnh thông báo khách/người nhận và nhân viên duyệt về ca tồn, thời gian dự kiến, tránh báo đã hoàn khi chưa ghi sổ. Đề xuất báo nội bộ ngay khi phát hiện, Tùng xác nhận hành động dừng trong 5 phút; Oanh/Hạnh gửi thông báo ban đầu cho bên liên quan trong 60 phút, cập nhật mỗi ca hoặc khi có kết quả. Đây là mục tiêu quy trình, chưa phải thời hạn đã đo. |
+| Dữ liệu cá nhân nào đã rời hệ thống mà không thu hồi được? Báo cho ai? | C0/C1 ghi pii_leaks = 0 ở base/prepared và lần after kinh doanh; report đối chiếu sau sửa là R-S4-after-20261119-171721-504920 và grade R-S4-grade-20261119-171721-504920. Chưa có dữ liệu cá nhân cụ thể được xác định là đã lộ trong phần bằng chứng được ghi ở phiếu; không suy ra rằng telemetry nhìn thấy mọi trường hợp lộ ngoài thực tế. Nếu phát hiện: giữ bằng chứng hạn chế truy cập, báo Tùng/Oanh ngay, tắt notify_carrier, liên hệ bên nhận để xử lý; không hứa thu hồi được mọi bản sao. |
+| Sự cố lộ ra trước qua số máy đo, phản hồi của người, hay đọc nội dung? Nguồn nào bàn chưa có? | Thẻ mở đầu bằng phản ánh của Tùng/Hạnh; C1/C2 sau đó dẫn số máy đo hàng chờ và trace fallback để phân tích. Chưa có nguồn production đã xác minh: khiếu nại hãng/shop/người nhận và tải/công suất riêng luồng thủ công DN/CT; dữ liệu hiện tại là mock. fail_open_rate đã có nhưng chưa đo toàn bộ nguyên nhân gây hại. |
 
 ### Runbook 5 · Ba kịch bản "nếu … thì …" cho tuần đầu chạy thử thật
 
-1. Nếu số ticket tăng gấp ___ lần trong một giờ thì: …
-2. Nếu nhà cung cấp LLM lỗi quá ___ phút thì: …
-3. Nếu người duyệt báo không tin một quyết định của trợ lý thì: …
+1. Nếu số ticket tăng gấp 3 lần trong một giờ thì: Hạnh theo dõi tải duyệt tại HN/HCM và ca chuyển thủ công DN/CT; khi ≥ 3 ca chờ hoặc chờ ≥ 30 phút báo Tùng gọi người đủ quyền. Nếu chờ đạt 60 phút/có ca ùn, thu hẹp hoặc tạm dừng luồng gây ùn, giao người xử lý ca tồn; kiểm tra chi phí ≤ 7.000 đồng/ticket, ROI ≥ 0,4 trước mở rộng.
+2. Nếu nhà cung cấp LLM lỗi quá 5 phút thì: theo ngưỡng phản ứng đề xuất, Tùng xác minh mức lỗi và fail_open_rate; mọi lệnh ghi vẫn phải qua kiểm tra tracking/policy/ngân sách/phê duyệt. Không nới điều kiện khi fallback; thiếu căn cứ thì chuyển người trong khả năng tiếp nhận. Nếu không còn đường xử lý an toàn hoặc hàng chờ quá SLA, tạm tắt tool liên quan và bố trí thủ công; kiểm tra lại trước mở. Trong pilot thật, người trực ghi nhận thời điểm bắt đầu lỗi để áp dụng mốc 5 phút; fail_open_rate chỉ đo tỉ lệ. Đây là kịch bản runbook, không yêu cầu thêm lệnh chạy cho C11.
+3. Nếu người duyệt báo không tin một quyết định của trợ lý thì: Hạnh giữ quyết định đó để đối chiếu tracking, policy, approval và sổ cái; không tạo approval chỉ để cho qua. Oanh hỗ trợ đối soát, Tùng nhận báo cáo nguyên nhân và kiểm tra ca tương tự; cần tạm dừng tool nếu xác nhận vi phạm an toàn. Chỉ cho xử lý tiếp khi có đủ căn cứ; các đề xuất tăng kiểm mẫu/bật ghi chú chỉ ghi nhận để nhóm xem xét, không tự sửa config trong lúc hoàn thiện biểu mẫu.
 
 ---
 
