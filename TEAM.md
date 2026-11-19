@@ -93,24 +93,27 @@ Vai **Kỹ sư cổng: chạy và đánh giá**. Đề: câu 1.3 (Phiếu A mụ
 
 ### Đóng góp cụ thể
 
-- Offline metric cho bước "tìm phê duyệt" (1.3), nhãn lấy từ `approvals`.
+- Offline metric cho bước **chọn phê duyệt hợp lệ** (1.3), nhãn lấy từ `approvals` và sự kiện `approval_used`; không đo bước tìm kiếm phê duyệt.
 - Viết cổng vòng 1 trong `lab10/guards.py` (đối chiếu nguồn sự thật, trần tiền và phê duyệt, lọc dữ liệu gửi bên thứ ba); chạy mốc base, after, prepared và chốt vòng 1.
 - Lần chạy đầu và bảng soát lỗi `T-002@55` (hai lỗi chìm: hoàn sai 20.000đ, ghi oan VNX).
 - Hai bước tránh rò rỉ dữ liệu; behavioral test với hai ticket hiểm (`O-1002`, `O-1019`).
 - Phân tích thẻ S4: soát lỗi `S4-05@11`, `S4-08@11`, `S4-33@11`; HAZOP của thẻ; specification và giả định môi trường (LLM sẵn sàng giờ cao điểm).
 - Đề xuất hai chỉ số theo dõi từ bảng soát lỗi thẻ: `fail_open_write_rate` (thành `fail_open_rate` của Khiêm) và `queue_over_sla_rate`.
+- Đối chiếu chất lượng sau thay đổi: `R-S4-grade-20261119-171721-504920` đạt `PASS-VISIBLE`, hoàn sai/lỗi hãng oan 0/0; `R-base-after-20261119-171721-504920` không có regression trên bộ nền.
 
 ### Bằng chứng
 
 - Commit: `06ad651`, `91caf76` (cổng và câu 1.3), `1753ce4` (chốt vòng 1, `round1.lock` lúc 16:23:40), `32739e8` (B0–B2), `e91229b` (B7.2, B7.3), `8df88c4` (C2, C4, C5).
-- Lần chạy: `R-base-before-20261119-161314-f7bb40` (base), `R-base-after-20261119-162235-f7bb40`, `R-base-prepared-20261119-162341-f7bb40`.
+- Lần chạy: `R-base-before-20261119-161314-f7bb40` (base), `R-base-after-20261119-162235-f7bb40`, `R-base-prepared-20261119-162341-f7bb40`; kiểm chứng thẻ S4: `R-S4-grade-20261119-171721-504920` và hồi quy `R-base-after-20261119-171721-504920`.
 - Phiếu: A2 cột offline; B0, B1, B2, B7.2, B7.3; C2, C4, C5.
 
 ### Dùng AI
-...
+
+AI hỗ trợ đọc cấu trúc repo và trace, giải thích metric/cổng, soạn nháp các mục B0–B2, B7.2–B7.3, C2, C4, C5 và chạy các kiểm tra hành vi adhoc. Kết quả được đối chiếu với report và trace thực tế; nhóm tự chốt tiêu chí, cách diễn giải và quyết định.
 
 ### Exit ticket
-...
+
+Bài học: bộ nền chỉ nên là hồi quy, không phải toàn bộ bằng chứng để tối ưu; cần kiểm các bất biến trên dữ liệu holdout và ticket mới, không vá theo ID hay câu chữ. S4 cũng cho thấy pass về chất lượng chưa đủ để kết luận sẵn sàng vận hành: cần kiểm tải thật và năng lực người duyệt trước khi mở rộng.
 
 ## NguyenTrongKhiem-2A202604109
 
