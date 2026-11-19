@@ -313,10 +313,10 @@ Mỗi con số kèm một câu lý do, lấy từ `data/world.json` → `ops_lim
 
 | Khoá | Giá trị bàn đặt | Lý do (một câu, có số) |
 |---|---|---|
-| `business.daily_refund_cap_vnd` | | |
-| `business.cost_budget_per_ticket_vnd` | | |
-| `business.pilot_scope` (all / warehouse / percent) | | |
-| `business.roi_min` | | |
+| `business.daily_refund_cap_vnd` | `1000000` | Bằng 50% ngân sách hoàn tự động Finance 2.000.000đ/ngày (`ops_limits.daily_auto_refund_budget_vnd`) cho pilot 2 depot, vẫn gấp khoảng 6 lần tổng hoàn tự động một ngày của bộ nền (155.000đ), nên không làm hỏng ca đúng mà giới hạn thiệt hại nếu cổng khác lọt; ngày có ngân sách riêng thấp hơn (ngày sale 300.000đ ở S4) thì cổng code đọc `ops_limits` vẫn chặn theo mức thấp hơn. |
+| `business.cost_budget_per_ticket_vnd` | `1500` | Đúng trần tiền LLM mỗi ticket đã thống nhất với Ops/Finance (`ops_limits.max_llm_cost_per_ticket_vnd` = 1.500đ); ticket đắt nhất đo được là 670đ (bộ nền) và 871đ (S4), nên trần này không đẩy thêm ca sang người duyệt, chỉ chặn ticket bất thường dài (ví dụ dán cả đoạn văn để kéo model đọc). |
+| `business.pilot_scope` (all / warehouse / percent) | `{"mode": "all", "warehouses": [], "percent": 100}` | Giữ toàn bộ: ở mốc prepared không kho nào trong HN, HCM, DN, CT đắt hơn làm tay (cao nhất 4.553đ ở DN so với 10.000đ, `ops_facts.manual_cost_per_ticket_vnd`), nên chưa có số để cắt kho; nhóm ticket không tra được đơn (kho `?`, 10.200đ) không cắt được bằng khoá này (đơn không tồn tại luôn tính là trong phạm vi) nên cắt bằng `pre_guard` chuyển người và bước tiếp nhận làm tay (quyết định v1). |
+| `business.roi_min` | `0.4` | Bằng ngưỡng `business_ops.roi_min` đã ký, tương ứng chi phí mỗi ticket khoảng 7.000đ so với làm tay 10.000đ (`ops_facts`); dưới mức này lợi ích không bù được phí giữ chỗ người trực 30.000đ/người/ca. Bộ nền đo được 1,39, gói S4 0,56. |
 
 ### B7.5 · Câu 2.10 · Cổng con người, vận hành, pháp lý + Runbook phần 1–3
 
@@ -332,8 +332,8 @@ Phần 1–3 và mục Giờ cao điểm viết ở vòng 1. Phần 4–5 viết
 
 | Vai | Tên / mã nhân viên (lấy từ `data/world.json` → `staff`) | Được quyền làm gì | Liên lạc qua kênh nào |
 |---|---|---|---|
-| PIC của trợ lý (một người) | Lê Thanh Tùng — NV-TUNG (phân công đề xuất) | Điều phối vận hành, quyết định tạm dừng và phối hợp mở lại; cần đồng bộ operations.pic = NV-TUNG. | #van-hanh-tro-ly; gọi trực tiếp khi có tín hiệu đỏ. |
-| Người duyệt đứng tên các khoản vượt hạn mức | Trần Thị Hạnh — NV-HANH | Kiểm tra căn cứ và duyệt trong thẩm quyền bằng approval hợp lệ; đề xuất đặt operations.approver_id = NV-HANH. | #van-hanh-tro-ly; gọi trực tiếp khi cần quyết định gấp. |
+| PIC của trợ lý (một người) | Lê Thanh Tùng — NV-TUNG | Điều phối vận hành, quyết định tạm dừng và phối hợp mở lại; khớp `operations.pic` = `NV-TUNG`. | #van-hanh-tro-ly; gọi trực tiếp khi có tín hiệu đỏ. |
+| Người duyệt đứng tên các khoản vượt hạn mức | Trần Thị Hạnh — NV-HANH | Kiểm tra căn cứ và duyệt trong thẩm quyền bằng approval hợp lệ; khớp `operations.approver_id` = `NV-HANH` (cổng code chỉ nhận phê duyệt do người này đứng tên). | #van-hanh-tro-ly; gọi trực tiếp khi cần quyết định gấp. |
 | Người giữ công tắc tắt từng thao tác ghi | Lê Thanh Tùng — NV-TUNG | Tắt tool liên quan trong config/switches.json, xác minh đã ngừng ghi và ghi thời điểm; không tự nới ngân sách Finance. | #van-hanh-tro-ly. |
 | Người nhận khiếu nại của bên thứ ba (hãng, shop, người nhận quà) | Phạm Kiều Oanh — NV-OANH (đầu mối đề xuất) | Tiếp nhận phản ánh, đối chiếu giao dịch với hãng/shop; phối hợp Hạnh xử lý phản ánh người nhận, báo Tùng nếu có dấu hiệu an toàn. Không mặc định có quyền duyệt hoàn. | Kênh hỗ trợ/đối soát cần tổ chức; báo nội bộ qua #van-hanh-tro-ly. |
 

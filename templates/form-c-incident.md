@@ -31,9 +31,9 @@ Mỗi lệnh `lab10.eval` và `lab10.grade` tự ghi một dòng vào `runs/jour
 | # | Mã lần chạy | Bộ ticket · mốc | Đổi MỘT thứ gì so với lần trước | pass_rate (khoảng tin cậy 95%) | pass_k | Hoàn sai (đ) · lỗi hãng oan · lộ dữ liệu | Tỉ lệ chuyển người | Kết luận (một câu) |
 |---|---|---|---|---|---|---|---|---|
 | 1 | `R-S4-prepared-20261119-164200-22b003` | S4 · prepared | nhận thẻ đã bốc, chưa sửa thêm (đúng cổng vòng 1 đã chốt) | 1,0 [1,0; 1,0] (base cùng gói: 0,8683 [0,80; 0,9268]) | 1,0 (base 0,6829) | 0 · 0 · 0 (base 160.000đ · 27 · 0) | 0,5122 (base 0,3659) | Cổng vòng 1 chặn hết hoàn sai và lỗi hãng oan, nhưng đẩy gần một nửa ticket sang 1 người duyệt nên 5 ca bị ùn, chờ lâu nhất 82 phút > 60. |
-| 2 | | Sx · after | | | | | | |
+| 2 | `R-S4-after-20261119-170410-a63e67` | S4 · after | điền mục `business` (trần ngày 1.000.000đ, ngân sách 1.500đ/ticket, ROI 0,4; phạm vi giữ `all`) | 1,0 [1,0; 1,0] | 1,0 | 0 · 0 · 0 | 0,5122 | Không đổi so với prepared: cổng kinh doanh không chạm hàng chờ, vẫn 5 ca ùn, chờ lâu nhất 82 phút; nguyên nhân nằm ở công suất người duyệt. |
 | 3 | | Sx · after | | | | | | |
-| 4 | | base · after | (kiểm không regression) | | | | | |
+| 4 | `R-base-after-20261119-170400-a63e67` | base · after | (kiểm không regression) sau khi điền mục `business` | 1,0 [1,0; 1,0] | 1,0 | 0 · 0 · 0 | 0,2273 | Không có ca mới hỏng; chi phí 4.187đ, ROI 1,39, không vượt trần. |
 
 ---
 
