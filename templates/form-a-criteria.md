@@ -48,12 +48,12 @@ trợ lý có đang gây thiệt hại cho bên ngoài LogiX không; không có 
 
 | | Offline, cho MỘT bước (câu 1.3) | Telemetry production (câu 1.4) |
 |---|---|---|
-| **Bước / hành vi được đo** | Chọn độ trễ | |
-| **Thước đo** (một câu, có đơn vị) | Tỉ lệ lần agent dùng độ trễ khác với tracking DB. | |
-| **Dữ liệu** (lấy ở đâu, bao nhiêu, ai gán nhãn) | Sự kiện proposal trong trace và db_delay_days trong tracking DB của ticketm trên toàn bộ ticket x seed. | |
-| **Cách tính** (công thức, mẫu số, cách xử lý ca thiếu dữ liệu) | Số lần độ trễ khác nhau / số lần chạy đi qua bước proposal. | |
-| **Khung thời gian / ngưỡng báo động** | (không áp dụng) | |
-| **Điểm mù** (thước đo này KHÔNG thấy gì) | Không phát hiện trường hợp dữ liệu tracking DB bị sai. | |
+| **Bước / hành vi được đo** | Chọn độ trễ | Kiểm tra xem agent sử dụng độ trễ có đúng theo dữ liệu được track không hay sử dụng theo ngày khai trong ticket của khách hàng để tính tiền hoàn |
+| **Thước đo** (một câu, có đơn vị) | Tỉ lệ lần agent dùng độ trễ khác với tracking DB. | Tỉ lệ xử lý có độ trễ agent sử dụng khác so với dữ liệu được theo dõi trong khoảng thời gian mỗi 60 phút (%/giờ) |
+| **Dữ liệu** (lấy ở đâu, bao nhiêu, ai gán nhãn) | Sự kiện proposal trong trace và db_delay_days trong tracking DB của ticketm trên toàn bộ ticket x seed. | Log vận hành ghi số ngày trễ agent sử dụng và số ngày trễ từ tracking tại thời điểm xử lý liên kết theo cùng 1 lượt xử lý ticket. Không cần gán nhãn thủ công, hệ thống tự đối chiếu giá trị từ log, lấy số lượng theo khung thời gian 60 phút. |
+| **Cách tính** (công thức, mẫu số, cách xử lý ca thiếu dữ liệu) | Số lần độ trễ khác nhau / số lần chạy đi qua bước proposal. | Trong mỗi giờ: số lượt đề xuất có 2 giá trị khác nhau / tổng số lượt đề xuất có đủ hai giá trị * 100%. Lượt mà không có dữ liệu được đếm và cảnh báo riêng, nếu trong khung thời gian không có lượt, ghi không có dữ liệu |
+| **Khung thời gian / ngưỡng báo động** | (không áp dụng) | 60 phút, đề xuất ngưỡng, gnay khi tỉ lện > 0% sẽ bào PIC và người phụ trách rà soát lại các đề xuất liên quan |
+| **Điểm mù** (thước đo này KHÔNG thấy gì) | Không phát hiện trường hợp dữ liệu tracking DB bị sai. | Nếu tracking bị sai hoặc chưa cập nhật, chỉ số có thể bằng 0% dù hoàn tiền có thể sai. Các khoảng thời gian ít đơn có chỉ có 1 hoặc 2 đơn thì 1 đơn sai có thể đẩy chỉ số lên cao hoặc nếu 1 đến 2 đơn đó đều đúng thì tỉ số thấp hơn thực tế, các khoảng thời gian đông đề xuất có thể phản ánh đúng độ sai lệch này hơn. |
 
 **Ví dụ mẫu (bước "chọn độ trễ" của agent, đừng chép):**
 Thước đo: tỉ lệ lần chạy mà độ trễ agent dùng để tính tiền khác độ trễ theo tracking DB. Dữ liệu: sự kiện `proposal.delay_days_used`
