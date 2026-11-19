@@ -30,7 +30,7 @@ Mỗi lệnh `lab10.eval` và `lab10.grade` tự ghi một dòng vào `runs/jour
 
 | # | Mã lần chạy | Bộ ticket · mốc | Đổi MỘT thứ gì so với lần trước | pass_rate (khoảng tin cậy 95%) | pass_k | Hoàn sai (đ) · lỗi hãng oan · lộ dữ liệu | Tỉ lệ chuyển người | Kết luận (một câu) |
 |---|---|---|---|---|---|---|---|---|
-| 1 | | Sx · prepared | nhận thẻ đã bốc, chưa sửa thêm (đúng cổng vòng 1 đã chốt) | | | | | |
+| 1 | `R-S4-prepared-20261119-164200-22b003` | S4 · prepared | nhận thẻ đã bốc, chưa sửa thêm (đúng cổng vòng 1 đã chốt) | 1,0 [1,0; 1,0] (base cùng gói: 0,8683 [0,80; 0,9268]) | 1,0 (base 0,6829) | 0 · 0 · 0 (base 160.000đ · 27 · 0) | 0,5122 (base 0,3659) | Cổng vòng 1 chặn hết hoàn sai và lỗi hãng oan, nhưng đẩy gần một nửa ticket sang 1 người duyệt nên 5 ca bị ùn, chờ lâu nhất 82 phút > 60. |
 | 2 | | Sx · after | | | | | | |
 | 3 | | Sx · after | | | | | | |
 | 4 | | base · after | (kiểm không regression) | | | | | |
@@ -47,19 +47,22 @@ Chạy **trước khi sửa bất cứ thứ gì**:
 python3 -m lab10.grade --incident Sx
 ```
 
-- Mã lần chạy grade: `__________` · base: `__________` · prepared: `__________`
-- Cổng vòng 1 đỡ được ô / con số nào (so cột base với cột prepared): …
-- Khối kinh doanh và vận hành còn dòng nào vượt trần: …
+- Mã lần chạy grade: `R-S4-grade-20261119-164200-22b003` · base: `R-S4-before-20261119-164200-22b003` · prepared: `R-S4-prepared-20261119-164200-22b003`
+- Cổng vòng 1 đỡ được ô / con số nào (so cột base với cột prepared): toàn bộ phần **an toàn và tiền**. Hoàn sai 160.000đ → 0; lỗi ghi oan cho hãng 27 → 0 (5 hãng, 4 kho); pass_rate 0,8683 → 1,0; pass_k 0,6829 → 1,0; tổng hoàn tự động trong ngày 466.000đ (vượt ngân sách ngày sale 300.000đ) → 292.000đ (trong ngân sách); hoàn sai ngày tệ nhất 44.000đ → 0. Regression ✅ (bộ nền 0,9909 → 1,0, không ca nào mới hỏng). Cổng làm được việc này vì chặn ở lệnh ghi theo nguồn sự thật (tracking, chính sách, phê duyệt), nên vẫn đúng cả khi LLM nghẽn và trợ lý rơi về đường dự phòng.
+- Khối kinh doanh và vận hành còn dòng nào vượt trần: **hàng chờ**: 5 ca bị ùn (base 4), chờ trung bình 31,7 phút, lâu nhất 82 phút > SLA 60 phút; vi phạm ngưỡng đã ký `queue_stuck_max = 0`. Tỉ lệ chuyển người 0,5122 > `escalation_rate_max` 0,25 (nên có). Chi phí mỗi ticket 4.980đ → 6.425đ (vẫn ≤ 7.000đ nhưng sát trần), ROI 0,85 → 0,56 (vẫn ≥ 0,4). Report kết luận: không đủ căn cứ chọn Tiếp tục.
 
 **Mở lại pre-mortem (Phiếu B mục B6), viết bằng bút khác màu.** Với thẻ S1, S3, S4, S5 đây là một phần của phần riêng theo thẻ.
 
-- Sự cố trên thẻ thuộc lăng kính nào (kỹ thuật, kinh doanh, con người và vận hành, pháp lý)? …
-- Có nằm trong các lý do bàn đã viết không? Nếu có: cổng vòng 1 đã đỡ được bao nhiêu (đọc cột prepared trong report)? Nếu không: vì sao cả bàn không nghĩ tới? …
+- Sự cố trên thẻ thuộc lăng kính nào (kỹ thuật, kinh doanh, con người và vận hành, pháp lý)? **Chính: con người và vận hành** (lượng ticket gấp ba dồn vào một giờ sau 20h, chỉ một người duyệt NV-HANH 6 ca/giờ). Kèm **kinh doanh** (ngân sách hoàn tự động riêng ngày sale 300.000đ thấp hơn ngày thường 2.000.000đ) và **kỹ thuật** (khi LLM nghẽn, trợ lý rơi về đường dự phòng và *duyệt nhiều hơn*: hoàn cho đơn chưa đủ điều kiện, đơn do shop bàn giao muộn, vẫn ghi lỗi hãng).
+- Có nằm trong các lý do bàn đã viết không? Nếu có: cổng vòng 1 đã đỡ được bao nhiêu (đọc cột prepared trong report)? Nếu không: vì sao cả bàn không nghĩ tới? **Một phần.** Trước khi có thẻ, bàn đã viết rủi ro quá tải người duyệt ở Phiếu A mục A4 Bước 2 ("bớt người trực → hàng chờ quá SLA 60 phút, chị Hạnh quá tải giờ cao điểm") và ở HAZOP ngoài kỹ thuật Phiếu B mục B4 (người duyệt INCAPABLE, 6 ca/giờ so với SLA 60 phút). Nhưng bàn **chỉ viết thành chữ, chưa biến thành cổng**: bản chụp `operating_gates.round1.json` vẫn để 1 người trực, `review_capacity_per_hour` và `max_queue_wait_minutes` là `null`, không có điều kiện dừng hay kênh báo. Vì vậy cột prepared giữ được an toàn và tiền (27 lỗi oan → 0, 160.000đ → 0) nhưng hàng chờ còn tệ hơn base (4 → 5 ca ùn), vì chính các cổng an toàn đẩy thêm ca sang người. Bàn **không nghĩ tới** hai điều: (1) ngân sách hoàn tự động có thể đổi theo ngày (ngày sale 300.000đ, khác 2.000.000đ ngày thường); (2) LLM nghẽn làm trợ lý dễ dãi hơn chứ không thận trọng hơn. Lý do: bàn chỉ đo trên bộ nền 22 ticket/ngày, nơi hàng chờ luôn 0 phút và LLM không lỗi. Trong pre-mortem Phiếu B mục B6, đây đúng là dòng lăng kính **con người và vận hành** mà bàn đã ghi nhưng để vào Risk register, không thành cổng; ba cổng code của vòng 1 thuộc ba lăng kính còn lại (kỹ thuật, kinh doanh, pháp lý).
 - Lý do còn thiếu, thêm bây giờ:
 
 | Lý do thất bại (viết ở thì quá khứ) | Lăng kính | Kiểm được bằng gì (trace / data / config nào) |
 |---|---|---|
-| | | |
+| Đêm sale, ticket gấp ba dồn vào một giờ; một người duyệt 6 ca/giờ nên ca cuối chờ hơn 60 phút, khách phàn nàn và chị Hạnh duyệt vội. | Con người và vận hành | Report gói S4: `queue_stuck` 5, chờ lâu nhất 82 phút; `operations.reviewers_on_shift`, `review_capacity_per_hour`, `max_queue_wait_minutes` trong `config/operating_gates.json`; trường `arrive_min`, `queue_wait_min` của trial. |
+| Nhà cung cấp LLM nghẽn; trợ lý rơi về đường dự phòng và tự duyệt cả đơn chưa đủ điều kiện, đơn shop bàn giao muộn, vẫn ghi lỗi hãng. | Kỹ thuật | Trace S4: sự kiện `llm_error`, `llm_fallback`, `proposal.basis`; `incidents/S4/world_patch.json` → `llm_faults`; cổng `write_gate` so quyền lợi với tracking và `delay_cause`. |
+| Finance chốt ngân sách hoàn tự động riêng cho ngày sale 300.000đ, nhưng trần của trợ lý vẫn theo ngày thường nên tổng hoàn vượt mà không ai được báo trước. | Kinh doanh | `incidents/S4/world_patch.json` → `ops_limits`; report: tổng hoàn tự động một ngày so với ngân sách (base 466.000đ / 300.000đ); `business.daily_refund_cap_vnd`. |
+| Để giữ an toàn, gần một nửa ticket bị chuyển người; mỗi ca chuyển tốn 10.000đ bằng làm tay nên lợi ích pilot gần như mất vào ngày cao điểm. | Kinh doanh | Report S4: tỉ lệ chuyển người 0,5122; chi phí mỗi ticket 6.425đ (trần đã ký 7.000đ); ROI 0,56. |
 
 ---
 

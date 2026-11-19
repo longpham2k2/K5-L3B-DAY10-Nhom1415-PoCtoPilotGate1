@@ -263,11 +263,11 @@ Bốn lăng kính (bắt buộc đủ cả bốn; dự án AI hay chết ở ba 
 
 | Lý do thất bại (viết ở thì quá khứ) | Lăng kính | Kiểm được hôm nay? (trace / data / config nào) | Thành cổng phòng ngừa nào (code hay config) / hay vào risk register |
 |---|---|---|---|
-| | Kỹ thuật | | |
-| | Kinh doanh | | |
-| | Con người và vận hành | | |
-| | Pháp lý | | |
-| | | | |
+| Trợ lý tin số ngày trễ khách tự khai hơn tracking DB (hoặc dùng sai phiên bản chính sách), nên đã hoàn sai tiền và ghi lỗi oan cho hãng; hãng nhỏ như GHSH bị đình chỉ sau 3 lỗi trong 7 ngày. | Kỹ thuật | Có: trace `T-002@55` (`03 model_override`: DB 2 ngày, ticket 5 ngày) trong `R-base-before-20261119-161314-f7bb40`; `parcels[].promised_date/delivered_date/delay_cause`; `policies[].effective_from/to`. | **Cổng 1 (code) · "tiền và lỗi hãng theo nguồn sự thật"**: `pre_guard` ghim chính sách đang hiệu lực (`policy_id`); `write_gate` tính lại quyền lợi từ tracking + chính sách (`H.entitlement_vnd`) và chặn khoản vượt; chỉ cho `file_carrier_fault` khi `H.carrier_at_fault` xác nhận, sửa kiện/hãng/số ngày theo tracking (`lab10/guards.py` dòng 36–53, 77–99, 153–179). |
+| Tổng hoàn tự động vượt ngân sách Finance và hoàn vượt hạn mức mà không có phê duyệt hợp lệ (phê duyệt hết hạn, đã dùng, sai đơn); LogiX chi ngoài quyền hạn, chị Oanh phải gỡ sổ. | Kinh doanh | Có: `ops_limits` (2.000.000đ/ngày, 300.000đ/khách/ngày, 2 lỗi/hãng/ngày); `approvals` (ví dụ `A-0031` đã dùng, hết hạn 2026-10-01); `policies[].auto_limit_vnd` 200.000đ. | **Cổng 2 (code) · "trần tiền và phê duyệt"**: vượt `auto_limit_vnd` thì chuyển người; kiểm phê duyệt (status, hạn, đúng đơn/khách, `max_vnd`, người duyệt); chặn hoàn trùng và vượt giá trị đơn; trần ngày, trần mỗi khách, ngân sách Finance; trần 2 lỗi/hãng/ngày (`lab10/guards.py` dòng 59–70, 101–151, 181–187). Trần ngày của bàn (`business.daily_refund_cap_vnd`) chưa đặt ở vòng 1 → bổ sung ở vòng 2. |
+| Cổng an toàn chuyển nhiều ca sang người nhưng chỉ một người duyệt (NV-HANH, 6 ca/giờ); giờ cao điểm hàng chờ vượt SLA 60 phút, khách chờ, trưởng ca duyệt vội. | Con người và vận hành | Một phần: `ops_facts` (6 ca/giờ/người, phí giữ chỗ 30.000đ), `ops_limits.review_sla_minutes` 60; nhưng bộ nền chỉ 22 ticket/ngày nên hàng chờ luôn 0 phút, chưa đo được giờ cao điểm. | **Chưa thành cổng ở vòng 1 → Risk register.** Đã ghi ở Phiếu A A4 Bước 2 và HAZOP ngoài kỹ thuật B4 (người duyệt INCAPABLE). Cổng cần có: con số trong `operations` (`reviewers_on_shift`, `review_capacity_per_hour`, `max_queue_wait_minutes`, `stop_conditions`), bản chụp vòng 1 còn để trống. |
+| Thông báo gửi hãng mang tên, số điện thoại, địa chỉ của khách hoặc người nhận quà; hoặc báo cho hãng một lỗi chưa được xác minh, hay trả lời khách "đã hoàn" khi sổ cái chưa ghi. | Pháp lý | Có: `policies[].carrier_notice_fields` (chỉ `order_id`, `parcel_id`, `district`, `delay_days`); `orders[].recipient`, `is_gift`; chỉ số `pii_leaks` trong report. | **Cổng 3 (code) · "chỉ gửi bên thứ ba thứ đã xác minh và được phép"**: `notify_carrier` chỉ khi đã có lỗi hãng được ghi, lọc payload theo `carrier_notice_fields` và `legal.pii_fields_blocked_to_third_party`; `send_reply` chỉ báo số tiền đã có trong sổ cái (`lab10/guards.py` dòng 189–222). |
+| Ticket về đơn không tồn tại hoặc không phải của người gửi vẫn được trợ lý đọc và xử lý, tốn tiền LLM rồi vẫn phải chuyển người. | Kinh doanh | Có: `T-018` (đơn `O-9999`), kho `?` 10.200đ/ticket > làm tay trong `R-base-prepared-20261119-162341-f7bb40`. | Một phần trong Cổng 1 (`pre_guard` chuyển người khi không tìm thấy đơn hoặc sai chủ đơn); phần chi phí → quyết định Thu hẹp ở B8. |
 
 ---
 
@@ -404,22 +404,22 @@ bao nhiêu thời gian? (3) Có phần nào của dự án không nên làm ti�
 
 | | **v1** (phút 105–115, TRƯỚC khi nhận thẻ sự cố) |
 |---|---|
-| Commit ký tiêu chí (message `Sign acceptance criteria`; hash commit, tuỳ chọn) | |
-| Hash chốt cổng vòng 1 (8 ký tự lệnh `lab10.checkpoint` in ra, tuỳ chọn) | |
-| Mã lần chạy dùng làm bằng chứng | bộ nền, mốc base: ________ · bộ nền với cổng vòng 1 (prepared): ________ |
-| Còn dòng "vượt trần" nào trong report? (hàng chờ, chi phí, ROI, trần tiền, pháp lý) | |
-| Kho hoặc hãng có số xấu nhất: ____. Nếu chỉ nhìn phân khúc này, quyết định có đổi không? *(Đọc khối "theo kho và hãng" ở cuối output `lab10.eval` / `lab10.grade`, hoặc mục `by_segment` trong `report.json`.)* | |
-| Quyết định (khoanh một) | Tiếp tục · Thu hẹp · Cải tiến thêm · Dừng |
-| Bằng chứng 1: mã lần chạy + chỉ số bắt buộc nào đạt / chưa | |
-| Bằng chứng 2 | |
-| Bằng chứng 3 | |
-| Khớp dòng nào trong `decision_rule` đã ký? | |
-| Nếu Thu hẹp: cắt phần nào, vì sao | |
-| Nếu Cải tiến thêm: giả thuyết cụ thể + hạn | |
-| Nếu Dừng: bài học ghi lại | |
-| Một bằng chứng còn thiếu (thứ bộ nền chưa đo được) | |
-| Ngày quyết định lại (trừ khi Dừng) | |
-| PIC ký | |
+| Commit ký tiêu chí (message `Sign acceptance criteria`; hash commit, tuỳ chọn) | `9c9fdec` (ký lúc 2026-11-19T16:01:57, hash tiêu chí `6522e5ba`) |
+| Hash chốt cổng vòng 1 (8 ký tự lệnh `lab10.checkpoint` in ra, tuỳ chọn) | `3bfd5b06` (chốt lúc 16:23:40) |
+| Mã lần chạy dùng làm bằng chứng | bộ nền, mốc base: `R-base-before-20261119-161314-f7bb40` · bộ nền với cổng vòng 1 (prepared): `R-base-prepared-20261119-162341-f7bb40` |
+| Còn dòng "vượt trần" nào trong report? (hàng chờ, chi phí, ROI, trần tiền, pháp lý) | Không trên toàn bộ nền ở mốc prepared: `lab10.gate` cho cả 9 ngưỡng đã ký `[ĐẠT]` (pass_rate 1,0; pass_k 1,0; hoàn sai 0đ; lỗi hãng oan 0; lộ dữ liệu 0; chuyển người 0,2273 ≤ 0,25; chi phí 4.187đ ≤ 7.000đ; ROI 1,39 ≥ 0,4; ca ùn 0). Nhưng có **một phân khúc đắt hơn làm tay**: kho `?` 10.200đ/ticket > 10.000đ. Lưu ý: bản chụp `config/operating_gates.round1.json` còn trống (chưa có trần hoàn ngày, PIC, người duyệt), nên trần tiền chỉ được giữ bởi cổng code. |
+| Kho hoặc hãng có số xấu nhất: ____. Nếu chỉ nhìn phân khúc này, quyết định có đổi không? *(Đọc khối "theo kho và hãng" ở cuối output `lab10.eval` / `lab10.grade`, hoặc mục `by_segment` trong `report.json`.)* | **Kho `?`** (ticket nhắc tới đơn không có trong hệ thống, ví dụ `T-018` đơn `O-9999`): 10.200đ/ticket > làm tay 10.000đ, vì mỗi ca đều phải chuyển người. Ở mốc base, kho HCM / hãng VNX xấu nhất (hoàn sai 20.000đ, 1 lỗi oan, cùng ca `T-002@55`) nhưng đã sạch ở mốc prepared. Có đổi: nhìn riêng kho `?` thì không nên để trợ lý xử lý nhóm này, nên chọn Thu hẹp thay vì Tiếp tục. |
+| Quyết định (khoanh một) | **Thu hẹp** |
+| Bằng chứng 1: mã lần chạy + chỉ số bắt buộc nào đạt / chưa | `R-base-before-20261119-161314-f7bb40` (base): **chưa** đạt 2 ngưỡng an toàn, hoàn sai 20.000đ và 1 lỗi ghi oan cho VNX (`T-002@55`, trợ lý tin số ngày khách khai thay vì tracking). |
+| Bằng chứng 2 | `R-base-prepared-20261119-162341-f7bb40` (prepared): cả 5 chỉ số bắt buộc và 3 ngưỡng `business_ops` đều đạt; cổng vòng 1 đưa hoàn sai 20.000đ → 0 và lỗi oan 1 → 0 mà không làm hỏng ca nào (pass_rate 0,9909 → 1,0). |
+| Bằng chứng 3 | Cùng lần chạy prepared, khối theo kho: kho `?` 10.200đ/ticket > làm tay; và dòng `Tiếp tục` đã ký đòi đạt **cả trên gói sự cố**, điều bộ nền chưa đo được. |
+| Khớp dòng nào trong `decision_rule` đã ký? | `Thu hẹp`: "Ba chỉ số an toàn đều = 0, nhưng … chi phí mỗi ticket … chưa đạt ở một phần: cắt kho, loại ticket hoặc phần trăm không đạt". Không khớp `Tiếp tục` vì chưa có bằng chứng trên gói sự cố. |
+| Nếu Thu hẹp: cắt phần nào, vì sao | Cắt nhóm ticket **không tra được đơn** (kho `?`, 1/22 ticket nền): chuyển thẳng về CSKH làm tay ở bước tiếp nhận, không qua trợ lý, vì trợ lý luôn phải chuyển người nên tốn 10.200đ > 10.000đ. Phần còn lại (kho HN, HCM, DN, CT; 1 người duyệt NV-HANH, 6 ca/giờ) chạy pilot. |
+| Nếu Cải tiến thêm: giả thuyết cụ thể + hạn | (không áp dụng) |
+| Nếu Dừng: bài học ghi lại | (không áp dụng) |
+| Một bằng chứng còn thiếu (thứ bộ nền chưa đo được) | Tải giờ cao điểm: bộ nền chỉ có 22 ticket/ngày, chờ lâu nhất 0 phút, nên chưa biết 1 người duyệt (6 ca/giờ) có giữ được SLA 60 phút khi lượng ticket tăng; và chưa đo trên LLM thật (MockLLM tất định). |
+| Ngày quyết định lại (trừ khi Dừng) | 2026-11-28 (trước khi REFUND-v4 có hiệu lực 2026-12-01); dự: cả bàn, NV-HANH, NV-OANH, NV-TUNG |
+| PIC ký | Phạm Ngọc Long (Sản phẩm và kinh doanh, trưởng nhóm) |
 
 Xong v1 thì lưu và đẩy một bản (sau mốc này không sửa cột v1):
 
