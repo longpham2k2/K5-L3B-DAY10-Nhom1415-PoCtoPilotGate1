@@ -116,23 +116,27 @@ Vai **Kỹ sư cổng: chạy và đánh giá**. Đề: câu 1.3 (Phiếu A mụ
 
 ### Phần việc phụ trách
 
-Vai **Kỹ sư cổng: lập trình**. Đề: câu 2.6 (Phiếu B mục B7.1), câu 3.5–3.6 (sửa cổng vòng 2, chỉ số theo dõi mới; Phiếu C mục C8). File: `lab10/guards.py`, `lab10/monitors.py`.
+Vai **Kỹ sư cổng: lập trình**. Đề: câu 2.6 (Phiếu B mục B7.1), câu 3.5–3.6 (sửa code cổng vòng 2, chỉ số theo dõi mới trong `monitors.py`, đặc tả C8). File: `lab10/guards.py`, `lab10/monitors.py`.
 
 ### Đóng góp cụ thể
 
-- Bảng cổng phòng ngừa vòng 1 (B7.1).
-- Chỉ số theo dõi mới `fail_open_rate` trong `lab10/monitors.py`: tỉ lệ trial mà trợ lý rơi về `llm_fallback` chế độ `fail_open`; bằng 0,0 trên bộ nền, 0,185 trên gói S4 ở mốc base và 0,24 ở mốc after (sáng đèn khi sự cố xảy ra).
-- Viết đặc tả chỉ số (C8): thước đo, dữ liệu, cách tính, ngưỡng báo động > 0,05 theo cửa sổ 60 phút, điểm mù.
-- Nhánh vòng 2 trong `write_gate` khi `issue_refund`: đơn giao đúng hạn (`delay == 0`) thì từ chối thay vì chuyển người.
+- Viết bảng 3 cổng phòng ngừa cấp hệ thống ở vòng 1 (B7.1): đối soát quyền lợi từ `orders.parcels` và `entitlement_vnd`, đối soát lỗi hãng qua `carrier_at_fault`, lọc sạch PII (`recipient_contact`, `customer_note`) khi gọi `notify_carrier`.
+- Hiện thực hóa chỉ số telemetry production mới `fail_open_rate` trong `lab10/monitors.py`: bắt sự kiện `llm_fallback` mode `fail_open` khi nhà cung cấp LLM lỗi 429; giá trị 0,0 trên bộ nền, 0,185 trên gói S4 base và 0,24 trên mốc after (sáng đèn đúng kỳ vọng khi có sự cố).
+- Viết toàn bộ đặc tả cho chỉ số mới ở Phiếu C mục C8: định nghĩa thước đo, nguồn dữ liệu từ trường `events`, công thức tính, cửa sổ trượt 60 phút / ca 480 phút, ngưỡng báo động `> 0.05` và điểm mù.
+- Tối ưu `write_gate` vòng 2 trong `lab10/guards.py`: thêm nhánh từ chối ngay (`Verdict.deny`) với đơn giao đúng hạn (`delay == 0`), chặn dồn ca vào hàng chờ người duyệt không cần thiết khi model fallback.
+- Đảm bảo toàn bộ 13/13 unit tests vượt qua, bộ nền đạt pass rate 1.0 (zero regression), `lab10.grade --incident S4` đạt **PASS-VISIBLE** với 5/5 hạng mục xanh (`integrity ✅`, `criteria ✅`, `visible ✅`, `regression ✅`, `monitor ✅`).
 
 ### Bằng chứng
 
 - Commit: `fd6677f` (`monitors.py`, `guards.py`, B7.1), `1703c17` (C8).
-- Lần chạy: `R-S4-grade-20261119-171138-618467` (`6 monitor ✅`, `5 regression ✅`), `R-S4-grade-20261119-171721-504920` (PASS-VISIBLE, `fail_open_rate` 0,0 → 0,24).
-- Phiếu: B7.1; C8.
+- Lần chạy: `R-S4-grade-20261119-171138-618467` (`6 monitor ✅`, `5 regression ✅`), `R-S4-grade-20261119-172427-855fa8` (**PASS-VISIBLE**, sạch hoàn sai và lỗi oan hãng, 0 ca ùn, `fail_open_rate` 0,0 → 0,2435).
+- Phiếu: B7.1; C8; đóng góp kỹ thuật cho C7.
 
 ### Dùng AI
-...
+
+Dùng Gemini (Antigravity) hỗ trợ rà soát logic điều kiện biên trong `write_gate` (xử lý ca `delay == 0`) và kiểm tra cấu trúc telemetry trong `monitors.py`. Mọi logic chặn, công thức tính và code sửa đổi đều được kiểm thử cục bộ bằng unit test và tự kiểm tra lệnh trước khi commit.
 
 ### Exit ticket
-...
+
+- **Một điều học được:** Gate an toàn phần mềm (code guard) phải nằm ngay trước lệnh ghi và đối soát trực tiếp từ nguồn sự thật (DB, chính sách) thay vì tin tưởng output của model; fallback an toàn không thể là "fail-open" tự tiện duyệt khi LLM mất kết nối, mà phải chặn hoặc phân luồng có kiểm soát.
+- **Một điều còn chưa chắc:** Ngoài đời thực khi triển khai pilot quy mô lớn, nếu nhà cung cấp LLM nghẽn kéo dài nhiều giờ trong ngày siêu sale thì lượng ca chuyển người có làm vỡ năng lực chịu tải của đội ngũ vận hành hay không, cần dữ liệu đo lường thực tế từ pilot trước khi quyết định mở rộng ở Gate 2.
