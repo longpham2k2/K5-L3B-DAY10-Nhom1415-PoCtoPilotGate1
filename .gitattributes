@@ -1,0 +1,5 @@
+# Lưu đúng từng byte cho các file có hash; không đổi xuống dòng giữa Windows và macOS/Linux.
+* text=auto eol=lf
+# Bản chụp vòng 1 được chốt trên máy Windows (CRLF): giữ nguyên byte để khớp config/round1.lock.
+lab10/guards_round1.py -text
+config/operating_gates.round1.json -text
