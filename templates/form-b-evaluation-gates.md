@@ -331,10 +331,10 @@ Phần 1–3 và mục Giờ cao điểm viết ở vòng 1. Phần 4–5 viết
 
 | Vai | Tên / mã nhân viên (lấy từ `data/world.json` → `staff`) | Được quyền làm gì | Liên lạc qua kênh nào |
 |---|---|---|---|
-| PIC của trợ lý (một người) | | | |
-| Người duyệt đứng tên các khoản vượt hạn mức | | | |
-| Người giữ công tắc tắt từng thao tác ghi | | | |
-| Người nhận khiếu nại của bên thứ ba (hãng, shop, người nhận quà) | | | |
+| PIC của trợ lý (một người) | Lê Thanh Tùng — NV-TUNG (phân công đề xuất) | Điều phối vận hành, quyết định tạm dừng và phối hợp mở lại; cần đồng bộ operations.pic = NV-TUNG. | #van-hanh-tro-ly; gọi trực tiếp khi có tín hiệu đỏ. |
+| Người duyệt đứng tên các khoản vượt hạn mức | Trần Thị Hạnh — NV-HANH | Kiểm tra căn cứ và duyệt trong thẩm quyền bằng approval hợp lệ; đề xuất đặt operations.approver_id = NV-HANH. | #van-hanh-tro-ly; gọi trực tiếp khi cần quyết định gấp. |
+| Người giữ công tắc tắt từng thao tác ghi | Lê Thanh Tùng — NV-TUNG | Tắt tool liên quan trong config/switches.json, xác minh đã ngừng ghi và ghi thời điểm; không tự nới ngân sách Finance. | #van-hanh-tro-ly. |
+| Người nhận khiếu nại của bên thứ ba (hãng, shop, người nhận quà) | Phạm Kiều Oanh — NV-OANH (đầu mối đề xuất) | Tiếp nhận phản ánh, đối chiếu giao dịch với hãng/shop; phối hợp Hạnh xử lý phản ánh người nhận, báo Tùng nếu có dấu hiệu an toàn. Không mặc định có quyền duyệt hoàn. | Kênh hỗ trợ/đối soát cần tổ chức; báo nội bộ qua #van-hanh-tro-ly. |
 
 Số người trực duyệt mỗi ca: ___ · Mỗi giờ duyệt được: ___ ca · Phạm vi pilot: ______ (tất cả / kho nào / bao nhiêu phần trăm)
 
@@ -344,13 +344,13 @@ Mỗi dòng một tín hiệu. Cột "Lấy ở đâu" phải là một dòng tr
 
 | Tín hiệu | Lấy ở đâu | Bình thường | Ngưỡng VÀNG → việc làm | Ngưỡng ĐỎ → việc làm | Ai quyết |
 |---|---|---|---|---|---|
-| Thời gian chờ người duyệt lâu nhất | | | | | |
-| Số ca bị ùn | | | | | |
-| Chi phí mỗi ticket so với làm tay | | | | | |
-| Tổng tiền hoàn tự động trong ngày so với trần | | | | | |
-| Tiền hoàn sai | | | | | |
-| Lỗi ghi oan cho hãng / lộ dữ liệu cá nhân (pháp lý) | | | | | |
-| (tín hiệu riêng của bàn) | | | | | |
+| Thời gian chờ người duyệt lâu nhất | Report queue_wait_max_min / ops.queue.wait_max_min. | < 30 phút; SLA nhận xử lý tối đa 60 phút. | Từ 30 đến dưới 60 phút: gọi hỗ trợ và ưu tiên ca gần hết SLA. | Từ 60 phút: kích hoạt xử lý tồn, không nhận thêm tải vượt công suất; thu hẹp hoặc tạm dừng luồng gây ùn. Có ca > 60 phút là vượt SLA. | Hạnh báo; Tùng điều phối. |
+| Số ca bị ùn | Report queue_stuck / ops.queue.stuck. | 0 ca. | Chưa có ca ùn nhưng chờ ≥ 30 phút: Hạnh gọi hỗ trợ theo dòng trên. | ≥ 1 ca: chưa đạt tiêu chí queue_stuck_max = 0; bổ sung công suất hoặc thu hẹp, giao người xử lý từng ca tồn. | Tùng và Hạnh. |
+| Chi phí mỗi ticket so với làm tay | Report cost_per_ticket_vnd, roi; khối kinh doanh và vận hành. | ≤ 7.000 đồng/ticket, ROI ≥ 0,4; làm tay 10.000 đồng/ticket. | Chi phí > 6.000 đến 7.000 đồng/ticket: đề xuất rà soát chi phí và tải duyệt, chưa mở rộng. | Chi phí > 7.000 đồng hoặc ROI < 0,4: chưa đạt tiêu chí; phối hợp kinh doanh chọn thu hẹp/cải tiến theo decision_rule đã ký. | Tùng phối hợp Oanh và vai Sản phẩm/kinh doanh. |
+| Tổng tiền hoàn tự động trong ngày so với trần | Report auto_refund_day_max_vnd; ops.refund.finance_daily_budget_vnd và team_daily_cap_vnd. | Dưới 80% giới hạn có hiệu lực; dùng mức thấp hơn giữa Finance và trần nhóm nếu đã đặt. | Từ 80%: Oanh báo Hạnh chuẩn bị tải duyệt; với S4 là 240.000 đồng nếu không có trần thấp hơn. | Khoản kế tiếp làm vượt giới hạn phải có phê duyệt hợp lệ trước khi ghi; S4 giới hạn tự động 300.000 đồng/ngày, dữ liệu nền 2.000.000 đồng/ngày. Không đồng nghĩa cấm mọi khoản hoàn có người duyệt. | Hạnh duyệt; Tùng giám sát; Oanh đối soát. |
+| Tiền hoàn sai | Report wrongful_refund_vnd (đánh giá offline); khi vận hành cần xác minh qua đối soát. | 0 đồng. | Có chênh lệch chưa xác minh: Oanh/Hạnh giữ log và rà soát, không kết luận ngay là hoàn sai. | > 0 đồng được xác minh: Tùng tắt issue_refund để điều tra và xử lý tiếp theo tiêu chí đã ký. | Tùng; Oanh và Hạnh xác minh. |
+| Lỗi ghi oan cho hãng / lộ dữ liệu cá nhân (pháp lý) | Report wrongful_carrier_faults, pii_leaks (đánh giá offline); chạy thật cần nguồn phản ánh/kiểm tra bổ sung. | Cả hai bằng 0. | Có phản ánh chưa xác minh: Oanh tiếp nhận và báo Tùng ngay. | ≥ 1 lỗi oan: tắt file_carrier_fault; ≥ 1 lần lộ PII: tắt notify_carrier. Tùng hoàn tất dừng trong tối đa 5 phút (đề xuất); tái diễn sau 2 vòng sửa thì dừng tự động hóa phần đó theo tiêu chí đã ký. | Tùng; Oanh phối hợp xác minh. |
+| (tín hiệu riêng của bàn) | monitor.escalation_rate trong report; hàm có sẵn trong lab10/monitors.py. | Tỉ lệ agent chuyển người ≤ 25%; khác review_rate có cả kiểm mẫu. | > 20% đến 25%: Hạnh kiểm tra tải duyệt và công suất. | > 25%: vượt ngưỡng nice-to-have; rà soát nguyên nhân, chi phí và hàng chờ. Chỉ dừng theo tín hiệu an toàn/hàng chờ, không coi chỉ số này riêng lẻ là lỗi an toàn. | Hạnh báo Tùng. |
 
 #### Runbook 3 · Điều kiện dừng và cách dừng
 
@@ -367,11 +367,11 @@ Lượng ticket có thể dồn gấp ba trong một giờ (ngày sale, sau bão
 
 | Câu hỏi | Trả lời (có số, có tên) |
 |---|---|
-| Giờ cao điểm là khi nào, bao nhiêu ticket mỗi giờ (dựa vào `ops_facts`)? | |
-| Ai trực giờ cao điểm, mấy người (khớp `operations.reviewers_on_shift`)? | |
-| Ngưỡng nào thì **gọi thêm người** (hàng chờ bao nhiêu ca, chờ lâu nhất bao nhiêu phút)? Ai gọi? | |
-| Ngưỡng nào thì **thu hẹp** phạm vi (khoá `business.pilot_scope`) hoặc **tắt** một thao tác ghi (`config/switches.json`)? Ai quyết? | |
-| Thêm người thì chi phí mỗi ticket và ROI thay đổi thế nào (đọc report)? | |
+| Giờ cao điểm là khi nào, bao nhiêu ticket mỗi giờ (dựa vào `ops_facts`)? | Thẻ S4 mô tả sau 20h. Đếm tickets.jsonl theo cửa sổ 60 phút: đỉnh 30 ticket trong khoảng arrive_min [240, 300), tổng ngày 41 ticket. ops_facts cho công suất 6 ca/người/giờ; 30 ticket không đồng nghĩa 30 ca cần duyệt. Cần report để biết tải chuyển người và kiểm mẫu thực tế. |
+| Ai trực giờ cao điểm, mấy người (khớp `operations.reviewers_on_shift`)? | Hạnh (NV-HANH) trực duyệt, hiện 1 người, khớp operations.reviewers_on_shift = 1; công suất suy ra 6 ca/giờ. Tùng điều phối/công tắc, Oanh đối soát. Đây là hiện trạng chưa đủ theo triệu chứng S4; số người bổ sung phải có thẩm quyền, chốt qua đo tải và cập nhật config, không tự coi Tùng/Oanh là người duyệt. |
+| Ngưỡng nào thì **gọi thêm người** (hàng chờ bao nhiêu ca, chờ lâu nhất bao nhiêu phút)? Ai gọi? | Ngưỡng đề xuất: có ≥ 3 ca chưa được nhận xử lý hoặc chờ lâu nhất ≥ 30 phút thì Hạnh báo Tùng gọi thêm người có quyền duyệt. Với công suất hiện tại, 3 ca tương đương khoảng 30 phút công, chưa tính ca mới; không huy động được thì giảm tải trước khi vượt SLA. |
+| Ngưỡng nào thì **thu hẹp** phạm vi (khoá `business.pilot_scope`) hoặc **tắt** một thao tác ghi (`config/switches.json`)? Ai quyết? | Chờ ≥ 60 phút hoặc có ≥ 1 ca ùn: Tùng phối hợp vai kinh doanh thu hẹp business.pilot_scope về phần còn phục vụ được, độ phủ > 0, phần bị cắt có luồng thủ công nhận. Có hoàn sai thì tắt issue_refund; lỗi hãng oan thì tắt file_carrier_fault; lộ PII thì tắt notify_carrier, mục tiêu phản ứng tối đa 5 phút. Không coi tắt tự động là đã dọn xong hàng chờ. |
+| Thêm người thì chi phí mỗi ticket và ROI thay đổi thế nào (đọc report)? | ops_facts: thêm 1 người tăng tối đa 6 ca/giờ, phí giữ chỗ thêm 30.000 đồng/ca; công mỗi ca chuyển người 10.000 đồng. Chi phí/ticket và ROI phải đọc report sau từng phương án, chưa có report nên chưa xác nhận con số. So tiêu chí ≤ 7.000 đồng/ticket, ROI ≥ 0,4 và queue_stuck = 0; không tăng người tùy ý chỉ để hết ùn. |
 
 ---
 

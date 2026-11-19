@@ -7,18 +7,18 @@
     "roi_min": null
   },
   "operations": {
-    "pic": "",
-    "approver_id": "",
+    "pic": "NV-TUNG",
+    "approver_id": "NV-HANH",
     "reviewers_on_shift": 1,
-    "review_capacity_per_hour": null,
-    "max_queue_wait_minutes": null,
-    "stop_conditions": [],
-    "alert_channel": "",
+    "review_capacity_per_hour": 6,
+    "max_queue_wait_minutes": 60,
+    "stop_conditions": ["Khi có ít nhất 1 lỗi ghi oan cho hãng, NV-TUNG tắt file_carrier_fault trong tối đa 5 phút; nếu tái diễn sau 2 vòng sửa thì dừng tự động hóa phần đó.", "Khi có ít nhất 1 lần lộ dữ liệu cá nhân, NV-TUNG tắt notify_carrier trong tối đa 5 phút; nếu tái diễn sau 2 vòng sửa thì dừng tự động hóa phần đó.", "Khi xác minh tiền hoàn sai lớn hơn 0, NV-TUNG tắt issue_refund để rà soát và xử lý tiếp theo tiêu chí đã ký.", "Khi thời gian chờ đạt 60 phút hoặc có ít nhất 1 ca bị ùn, NV-TUNG phối hợp NV-HANH bổ sung công suất, thu hẹp phạm vi hoặc tạm dừng luồng gây ùn; giao người xử lý các ca tồn.", "Khi khoản hoàn kế tiếp làm vượt hạn mức tự động có hiệu lực, chặn ghi tự động và chuyển NV-HANH xác minh phê duyệt; không tự tăng ngân sách Finance."],
+    "alert_channel": "#van-hanh-tro-ly; gọi trực tiếp NV-TUNG/NV-HANH khi có tín hiệu đỏ",
     "decision_note": false,
     "review_sampling_pct": 0
   },
   "legal": {
-    "pii_fields_blocked_to_third_party": [],
-    "carrier_fault_requires_recorded_cause": false
+    "pii_fields_blocked_to_third_party": ["recipient_contact", "customer_note"],
+    "carrier_fault_requires_recorded_cause": true
   }
 }
