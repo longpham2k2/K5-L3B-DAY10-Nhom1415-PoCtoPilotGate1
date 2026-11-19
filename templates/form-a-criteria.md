@@ -24,8 +24,8 @@ rồi mới chạy đánh giá. Khối 1 không sửa code.
 
 ### Câu 1.2 · Mục tiêu nhìn từ hai người
 
-- Chị Oanh, kế toán đối soát (không dùng trợ lý, nhưng phải khớp sổ với hãng và shop mỗi tuần): …
-- Chị Hạnh, trưởng ca CSKH (phải duyệt những ca trợ lý chuyển sang): …
+- Chị Oanh, kế toán đối soát (không dùng trợ lý, nhưng phải khớp sổ với hãng và shop mỗi tuần): các khoản hoàn phải được ghi nhận đúng theo claim, đúng theo đối chiếu policy và có căn cứ được phê duyệt để truy xuất được. Có thể đối chiếu sổ sách với hãng và shop mỗi tuần mà không cần phải xử lý chênh lệch do chợ lý tạo ra.
+- Chị Hạnh, trưởng ca CSKH (phải duyệt những ca trợ lý chuyển sang): Các claim không thể đánh giá tự động hoặc thiếu căn cứ cần phải được chuyển cho người duyệt với đầy đủ thông tin claim, policy, lịch sử hoàn và approval. Các phần thông tin này cần được gửi cho bộ phận CSKH nhanh chóng để có thể xử lý với người ra claim.
 
 ---
 
