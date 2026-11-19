@@ -79,7 +79,7 @@ python3 -m lab10.trace --suite Sx --ticket <ID> --seed 11
 Ba loại lỗi: **giới hạn của hệ thống** · **lỗi ngữ cảnh** · **lỗi chìm** (cả người dùng lẫn hệ thống đều không nhận ra; nguy hiểm nhất,
 người chịu hại thường là bên thứ ba). Định nghĩa đầy đủ và ví dụ: Phiếu B mục B2.
 
-**Tác hại của thẻ:** khách được chuyển người và chị Hạnh (vận hành), Finance/LogiX · `queue_wait_max_min`, `queue_stuck`, tổng hoàn tự động/ngày · mốc base `R-S4-before-20261119-164618-f7bb40`: chờ lâu nhất 78 phút, 4 ca vượt SLA 60 phút; hoàn tự động 466.000đ so với ngân sách 300.000đ, vượt 166.000đ.
+**Tác hại của thẻ:** khách được chuyển người và chị Hạnh (vận hành), Finance/LogiX · `queue_wait_max_min`, `queue_stuck`, tổng hoàn tự động/ngày · mốc base `R-S4-before-20261119-164200-22b003`: chờ lâu nhất 78 phút, 4 ca vượt SLA 60 phút; hoàn tự động 466.000đ so với ngân sách 300.000đ, vượt 166.000đ.
 
 ### Phần 1 · Ghi lỗi (bằng chứng là mã ticket@seed và dòng trace, không tả chung chung)
 
