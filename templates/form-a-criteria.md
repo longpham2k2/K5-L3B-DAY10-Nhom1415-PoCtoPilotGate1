@@ -24,8 +24,8 @@ rồi mới chạy đánh giá. Khối 1 không sửa code.
 
 ### Câu 1.2 · Mục tiêu nhìn từ hai người
 
-- Chị Oanh, kế toán đối soát (không dùng trợ lý, nhưng phải khớp sổ với hãng và shop mỗi tuần): …
-- Chị Hạnh, trưởng ca CSKH (phải duyệt những ca trợ lý chuyển sang): …
+- Chị Oanh, kế toán đối soát (không dùng trợ lý, nhưng phải khớp sổ với hãng và shop mỗi tuần): các khoản hoàn phải được ghi nhận đúng theo claim, đúng theo đối chiếu policy và có căn cứ được phê duyệt để truy xuất được. Có thể đối chiếu sổ sách với hãng và shop mỗi tuần mà không cần phải xử lý chênh lệch do chợ lý tạo ra.
+- Chị Hạnh, trưởng ca CSKH (phải duyệt những ca trợ lý chuyển sang): Các claim không thể đánh giá tự động hoặc thiếu căn cứ cần phải được chuyển cho người duyệt với đầy đủ thông tin claim, policy, lịch sử hoàn và approval. Các phần thông tin này cần được gửi cho bộ phận CSKH nhanh chóng để có thể xử lý với người ra claim.
 
 ---
 
@@ -48,12 +48,12 @@ trợ lý có đang gây thiệt hại cho bên ngoài LogiX không; không có 
 
 | | Offline, cho MỘT bước (câu 1.3) | Telemetry production (câu 1.4) |
 |---|---|---|
-| **Bước / hành vi được đo** | | |
-| **Thước đo** (một câu, có đơn vị) | | |
-| **Dữ liệu** (lấy ở đâu, bao nhiêu, ai gán nhãn) | | |
-| **Cách tính** (công thức, mẫu số, cách xử lý ca thiếu dữ liệu) | | |
-| **Khung thời gian / ngưỡng báo động** | (không áp dụng) | |
-| **Điểm mù** (thước đo này KHÔNG thấy gì) | | |
+| **Bước / hành vi được đo** | | Kiểm tra xem agent sử dụng độ trễ có đúng theo dữ liệu được track không hay sử dụng theo ngày khai trong ticket của khách hàng để tính tiền hoàn |
+| **Thước đo** (một câu, có đơn vị) | | Tỉ lệ xử lý có độ trễ agent sử dụng khác so với dữ liệu được theo dõi trong khoảng thời gian mỗi 60 phút (%/giờ) |
+| **Dữ liệu** (lấy ở đâu, bao nhiêu, ai gán nhãn) | |Log vận hành ghi số ngày trễ agent sử dụng và số ngày trễ từ tracking tại thời điểm xử lý liên kết theo cùng 1 lượt xử lý ticket. Không cần gán nhãn thủ công, hệ thống tự đối chiếu giá trị từ log, lấy số lượng theo khung thời gian 60 phút.|
+| **Cách tính** (công thức, mẫu số, cách xử lý ca thiếu dữ liệu) | |Trong mỗi giờ: số lượt đề xuất có 2 giá trị khác nhau / tổng số lượt đề xuất có đủ hai giá trị * 100%. Lượt mà không có dữ liệu được đếm và cảnh báo riêng, nếu trong khung thời gian không có lượt, ghi không có dữ liệu|
+| **Khung thời gian / ngưỡng báo động** | (không áp dụng) | 60 phút, đề xuất ngưỡng, gnay khi tỉ lện > 0% sẽ bào PIC và người phụ trách rà soát lại các đề xuất liên quan |
+| **Điểm mù** (thước đo này KHÔNG thấy gì) | | Nếu tracking bị sai hoặc chưa cập nhật, chỉ số có thể bằng 0% dù hoàn tiền có thể sai. Các khoảng thời gian ít đơn có xác xuất chỉ có 1 hoặc 2 đơn đúng nên tỉ lệ có thể cao, trong khi thực tế có các khoảng thời gian đông đề xuất có thể phản ánh đúng độ sai lệch này hơn. |
 
 **Ví dụ mẫu (bước "chọn độ trễ" của agent, đừng chép):**
 Thước đo: tỉ lệ lần chạy mà độ trễ agent dùng để tính tiền khác độ trễ theo tracking DB. Dữ liệu: sự kiện `proposal.delay_days_used`
