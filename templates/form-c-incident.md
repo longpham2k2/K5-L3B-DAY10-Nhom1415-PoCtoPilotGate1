@@ -76,33 +76,33 @@ python3 -m lab10.trace --suite Sx --ticket <ID> --seed 11
 Ba loại lỗi: **giới hạn của hệ thống** · **lỗi ngữ cảnh** · **lỗi chìm** (cả người dùng lẫn hệ thống đều không nhận ra; nguy hiểm nhất,
 người chịu hại thường là bên thứ ba). Định nghĩa đầy đủ và ví dụ: Phiếu B mục B2.
 
-**Tác hại của thẻ:** cho ai `____` · đo bằng gì `____` · bao nhiêu ở mốc base `____`
+**Tác hại của thẻ:** khách được chuyển người và chị Hạnh (vận hành), Finance/LogiX · `queue_wait_max_min`, `queue_stuck`, tổng hoàn tự động/ngày · mốc base `R-S4-before-20261119-164618-f7bb40`: chờ lâu nhất 78 phút, 4 ca vượt SLA 60 phút; hoàn tự động 466.000đ so với ngân sách 300.000đ, vượt 166.000đ.
 
 ### Phần 1 · Ghi lỗi (bằng chứng là mã ticket@seed và dòng trace, không tả chung chung)
 
 | # | Lỗi: người ta thấy gì (dán dòng trace / sổ cái) | Ai gặp, ai chịu | Hệ trọng (thấp / cao) | Loại lỗi (giới hạn hệ thống / ngữ cảnh / chìm) |
 |---|---|---|---|---|
-| 1 | | | | |
-| 2 | | | | |
-| 3 | | | | |
+| 1 | `S4-05@11`: `04–06 llm_error/llm_fallback` (2 lần 429, `fail_open`); `07 proposal` dùng `basis=fail_open`, delay 1 ngày; `08 issue_refund` ghi 18.000đ và `09 file_carrier_fault` ghi lỗi MKD. Nhãn: `denied`, hoàn 0đ, không lỗi hãng. | Khách được hoàn sai; LogiX mất 18.000đ; hãng MKD bị ghi lỗi oan | cao | lỗi chìm |
+| 2 | `S4-08@11`: `02 tracking` ghi 4 ngày, `cause=MERCHANT_HANDOVER`; sau 2 lần 429, `06 llm_fallback` → `07 proposal` đặt `do_fault=true`; `09 file_carrier_fault`/`10 notify_carrier` ghi và báo lỗi VNX. Nhãn cho phép hoàn 24.000đ nhưng `faults: []`. | Hãng VNX chịu lỗi oan; LogiX có nguy cơ tranh chấp/đối soát. Tiền hoàn đúng nhãn. | cao | lỗi chìm |
+| 3 | `S4-33@11`: trace `01 llm_extract` → `02 result` chuyển người đúng loại `NOT_RECEIVED`; trial trong report có `queue_wait_min=78`, `queue_stuck=true` (đến lúc 292 phút trong ca). | Khách C-06 chờ quá SLA; chị Hạnh và vận hành chịu hàng chờ tồn | cao | giới hạn của hệ thống |
 
 ### Phần 2 · Tìm nguồn (đánh dấu câu nào đúng với từng lỗi)
 
 | Câu hỏi | Lỗi 1 | Lỗi 2 | Lỗi 3 |
 |---|---|---|---|
-| **Đầu vào:** hệ thống có tự diễn giải / sửa đầu vào của người dùng theo cách họ không lường? Có đặt sai trọng số cho một lời nói hay tín hiệu của người dùng? | | | |
-| **Độ liên quan:** hệ thống có thiếu dữ liệu cần để quyết đúng? Dữ liệu vào có nhiễu, thiếu ổn định? | | | |
-| **Thứ bậc hệ thống:** có hai hệ thống cùng ghi / cùng theo dõi một thứ mà không rõ bên nào là chủ (ví dụ CSKH hoàn tay và trợ lý cùng ghi sổ)? | | | |
-| **Trạng thái hỏng:** nhiều lỗi cộng lại có làm tính năng không dùng được (ví dụ LLM lỗi liên tiếp)? | | | |
+| **Đầu vào:** hệ thống có tự diễn giải / sửa đầu vào của người dùng theo cách họ không lường? Có đặt sai trọng số cho một lời nói hay tín hiệu của người dùng? | Không phải nguồn chính: ticket nói chậm nhẹ, tracking cho biết chỉ trễ 1 ngày; lỗi phát sinh khi policy check lỗi và fallback bỏ qua điều kiện. | Có: ticket nói shop bàn giao trễ và tracking ghi `MERCHANT_HANDOVER`, nhưng fallback vẫn ghi lỗi cho VNX. | Không: ticket `NOT_RECEIVED` được phân loại và chuyển người đúng; sự cố nằm ở thời gian chờ sau đó. |
+| **Độ liên quan:** hệ thống có thiếu dữ liệu cần để quyết đúng? Dữ liệu vào có nhiễu, thiếu ổn định? | Không: tracking có `db_delay_days=1`, `cause=CARRIER`; dữ liệu đủ để từ chối theo ngưỡng. | Không: tracking có đủ 4 ngày và `MERCHANT_HANDOVER`; dữ liệu có sẵn nhưng fallback không áp dụng đúng nguyên nhân. | Không: không có dữ liệu thiếu được trace xác định; ticket đã được chuyển đúng loại hàng chờ. |
+| **Thứ bậc hệ thống:** có hai hệ thống cùng ghi / cùng theo dõi một thứ mà không rõ bên nào là chủ (ví dụ CSKH hoàn tay và trợ lý cùng ghi sổ)? | Không: không có xung đột nguồn; policy và tracking là nguồn để quyết định. | Không: không có xung đột nguồn; tracking ghi rõ nguyên nhân shop bàn giao. | Không: không có hai hệ thống cùng ghi; đây là giới hạn công suất người duyệt. |
+| **Trạng thái hỏng:** nhiều lỗi cộng lại có làm tính năng không dùng được (ví dụ LLM lỗi liên tiếp)? | Có: hai lần 429 liên tiếp kích hoạt `fail_open`, rồi các lệnh ghi vẫn chạy. | Có: cùng trạng thái LLM không trả lời làm fallback bật ghi lỗi hãng dù nguyên nhân đã có. | Có, ở tầng vận hành: một người duyệt xử lý tối đa 6 ca/giờ trong khi nhiều ca dồn đến, dẫn đến 78 phút chờ và vượt SLA. |
 
 ### Phần 3 · Hướng xử lý (mỗi lỗi một ô)
 
 | | Lỗi 1 | Lỗi 2 | Lỗi 3 |
 |---|---|---|---|
-| Vì sao người gặp coi đây là lỗi | | | |
-| Kiểu giải pháp: phản hồi cho người dùng / trao quyền kiểm soát cho người / khác | | | |
-| Đường đi của người sau khi có giải pháp (ví dụ: ticket chuyển sang người duyệt → duyệt → khách được trả lời) | | | |
-| Hệ thống học được gì (tín hiệu ghi lại để theo dõi: tên metric trong `monitors.py`) | | | |
+| Vì sao người gặp coi đây là lỗi | Chính sách yêu cầu từ chối ở mức trễ này; khoản hoàn và lỗi hãng không đúng, dù agent báo xử lý thành công. | Nguyên nhân trong tracking là shop bàn giao muộn, không phải hãng VNX; hãng bị quy lỗi không có căn cứ. | Chuyển đúng người nhưng chờ 78 phút, vượt cam kết 60 phút; khách không nhận xử lý kịp. |
+| Kiểu giải pháp: phản hồi cho người dùng / trao quyền kiểm soát cho người / khác | Trao quyền cho người: nếu policy check lỗi hoặc fallback, dừng trước mọi lệnh ghi và chuyển duyệt. | Trao quyền cho người: không ghi lỗi/gửi hãng khi nguyên nhân không xác nhận lỗi hãng; giữ ticket cho người duyệt khi ở chế độ degraded. | Khác: đặt ngưỡng gọi thêm người/thu hẹp pilot/tạm dừng nhận ca tự động trước khi hàng chờ vượt SLA. |
+| Đường đi của người sau khi có giải pháp (ví dụ: ticket chuyển sang người duyệt → duyệt → khách được trả lời) | `llm_fallback` → chặn `issue_refund`/`file_carrier_fault` → chị Hạnh kiểm tra tracking và policy → duyệt/từ chối → cập nhật sổ rồi trả lời khách. | `llm_fallback` hoặc `MERCHANT_HANDOVER` → giữ lệnh ghi lỗi → nhân viên xác minh nguyên nhân → chỉ báo hãng nếu tracking xác nhận lỗi hãng; xử lý khoản hoàn riêng. | `queue_wait` gần ngưỡng → PIC gọi thêm người hoặc thu hẹp/tắt pilot → ca tồn được phân công → báo khách về thời hạn xử lý mới. |
+| Hệ thống học được gì (tín hiệu ghi lại để theo dõi: tên metric trong `monitors.py`) | Đề xuất `fail_open_write_rate`: số lượt có `llm_fallback` nhưng vẫn phát sinh lệnh ghi / số lượt có `llm_fallback`; lấy `llm_fallback` và sự kiện `tool` từ trace. Cần thêm vào `monitors.py`. | Cùng `fail_open_write_rate`, kèm phân loại tool `file_carrier_fault`; cần thêm vào `monitors.py` (chưa có sẵn). | Đề xuất `queue_over_sla_rate`: số ticket `queue_stuck` / số ticket vào hàng chờ; đo bằng `queue_wait_min`, `queue_stuck` trong trial/report. Cần thêm vào `monitors.py`. |
 
 Yêu cầu: ít nhất **hai lỗi có nguồn khác nhau** ở phần 2, và ít nhất một lỗi được xếp đúng là **lỗi chìm**.
 
@@ -231,13 +231,13 @@ Mở lại Phiếu B mục B3. Ghi ở đây những dòng đổi so với vòng
 
 *Mục riêng, không ghi đè HAZOP vòng 1 ở Phiếu B mục B4. Năm guideword và nghĩa của chúng: xem Phiếu B mục B4.*
 
-Tool chọn phân tích: `________________`
+Tool chọn phân tích: luồng `policy_check` → `issue_refund` / `file_carrier_fault` và hàng đợi người duyệt.
 
 | Tham số / dòng dữ liệu | Guideword (WRONG / INVALID / INCOMPLETE / PERTURBED / INCAPABLE) | Lệch cụ thể (mã ticket, trường dữ liệu của thẻ) | Hậu quả, cho ai | Hiện có gì ngăn? | Gate đề xuất + tầng |
 |---|---|---|---|---|---|
-| | | | | | |
-| | | | | | |
-| | | | | | |
+| `policy_check` / `basis` của khoản hoàn | INCAPABLE | `S4-05@11`: `policy_check` trả 429 hai lần, fallback `fail_open` vẫn hoàn 18.000đ và ghi lỗi dù chỉ trễ 1 ngày. `S4-08@11`: fallback cũng ghi lỗi VNX dù `cause=MERCHANT_HANDOVER`. | LogiX mất tiền ở ca không đủ điều kiện; MKD/VNX bị ghi lỗi oan. | Chỉ có retry; fallback hiện vẫn mở cho ghi. Mốc base không có guard của bàn. | Trong `write_gate`, nếu trace có `llm_fallback` thì chặn mọi ghi tiền/lỗi hãng và chuyển duyệt. Tầng: chặn ở code. |
+| Hàng chờ người duyệt / số người trực | INCAPABLE | `S4-33@11` vào hàng chờ tại phút 292; trial có `queue_wait_min=78`, `queue_stuck=true`. Report base: 1 người, công suất 6 ca/giờ, 4 ca ùn, chờ lâu nhất 78 phút. | Khách chờ quá SLA; chị Hạnh quá tải và vận hành mất khả năng xử lý đúng hạn. | Report chỉ phát hiện trong mô phỏng; config base chưa có ngưỡng gọi thêm người hay hành động thu hẹp/tắt. | Đặt công suất và số người trực thực tế; monitor gần ngưỡng 60 phút thì gọi backup, thu hẹp hoặc dừng nhận ca tự động. Tầng: config + vận hành/monitor. |
+| Ngân sách hoàn tự động cả ngày | PERTURBED | **Nhánh tổng hợp, không hiện trên trace từng ticket:** lượng ticket tăng gấp ba; report base ghi 466.000đ hoàn tự động so với `daily_auto_refund_budget_vnd=300.000đ` (vượt 166.000đ). | Finance/LogiX vượt ngân sách ngày sale; kế toán phải đối soát và xử lý phần vượt. | Có con số giới hạn trong `world_patch.json`, nhưng mốc base chỉ báo vượt trong report, không chặn trước lệnh ghi. | Trong `write_gate`, cộng tổng hoàn tự động trong ngày trước mỗi lần ghi; nếu vượt 300.000đ thì chuyển người, không ghi tự động. Tầng: chặn ở code. |
 
 Bắt buộc: ít nhất ba dòng, trong đó **một dòng là nhánh bàn chưa thấy trên trace** lúc viết.
 
@@ -249,15 +249,15 @@ Bắt buộc: ít nhất ba dòng, trong đó **một dòng là nhánh bàn chư
 
 ### Câu 3.2 · Một specification mà nếu bị vi phạm thì gây ra tác hại trên thẻ
 
-Kiểm được bằng code hoặc bằng một con số trong report: …
+Kiểm được bằng code hoặc bằng một con số trong report: nếu `policy_check` không khả dụng và trace có `llm_fallback`, agent không được ghi `issue_refund`, `file_carrier_fault` hay `notify_carrier`; phải chuyển người trước mọi tác động không đảo ngược.
 
-Kiểm bằng gì (hàm trong `guards.py`, dòng report nào): …
+Kiểm bằng gì (hàm trong `guards.py`, dòng report nào): thêm kiểm tra trong `write_gate(ctx, action)` để chặn `issue_refund`, `file_carrier_fault` và `notify_carrier` khi `ctx.events` có `llm_fallback`; viết behavioral test cho `S4-05@11` và `S4-08@11`, assert không có các dòng ghi này sau fallback. Report đánh giá phải có `wrongful_refund_vnd=0` và `wrongful_carrier_faults=0` cho các ca degraded.
 
 ### Câu 3.3 · Một giả định về môi trường mà người thiết kế đã ngầm tin, nhưng nhiều khả năng sai ngoài thực tế
 
-Giả định (thứ nằm NGOÀI phần mềm): …
+Giả định (thứ nằm NGOÀI phần mềm): nhà cung cấp LLM sẽ sẵn sàng trả lời `policy_check` trong giờ cao điểm; nếu lỗi thì retry sẽ khôi phục.
 
-Vì sao có thể sai: …
+Vì sao có thể sai: thẻ S4 và `incidents/S4/world_patch.json` mô phỏng lỗi 429 ở 60% lượt `policy_check`; trace `S4-05@11` và `S4-08@11` có hai lần 429 liên tiếp, rồi fallback đã gây hoàn/ghi lỗi không an toàn. Tính sẵn sàng của nhà cung cấp nằm ngoài quyền kiểm soát của phần mềm LogiX.
 
 ---
 

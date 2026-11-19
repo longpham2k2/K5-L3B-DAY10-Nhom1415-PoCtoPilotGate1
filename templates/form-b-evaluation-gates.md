@@ -29,7 +29,11 @@ Mọi con số trong quyết định Gate 1 phải trỏ về một dòng ở đ
 
 | # | Mã lần chạy | Bộ ticket · mốc | Đổi MỘT thứ gì so với lần trước | pass_rate (khoảng tin cậy 95%) | pass_k | Hoàn sai (đ) · lỗi hãng oan · lộ dữ liệu | Tỉ lệ chuyển người | Kết luận (một câu) |
 |---|---|---|---|---|---|---|---|---|
+<<<<<<< Updated upstream
 | 1 | R-base-before-20261119-161314-f7bb40 | base · base | (baseline, chưa có cổng) | 0.9909 [0.9727, 1.0] | 0.9545 | 20.000 · 1 · 0 | 0.2273 | Baseline chưa đạt an toàn: hoàn sai 20.000đ và ghi oan 1 lỗi hãng; pass_rate và pass_k vượt ngưỡng trong JSON hiện tại. |
+=======
+| 1 | R-base-before-20261119-161314-f7bb40 | base · base | (baseline, chưa có cổng) | 0.9909 [0.9727, 1.0] | 0.9545 | 20.000 · 1 · 0 | 0.2273 | Baseline chưa đạt an toàn: hoàn sai 20.000đ và ghi oan 1 lỗi hãng, dù pass_rate và pass_k vượt ngưỡng. |
+>>>>>>> Stashed changes
 | 2 | R-base-after-20261119-162235-f7bb40 | base · after | (cổng vòng 1 thử trước khi chốt; so với baseline) | 1.0 [1.0, 1.0] | 1.0 | 0 · 0 · 0 | 0.2273 | So với baseline, mốc after không còn hoàn sai hay lỗi hãng oan; pass_rate và pass_k tăng, tỉ lệ chuyển người giữ nguyên. |
 | 3 | R-base-prepared-20261119-162341-f7bb40 | base · prepared | (cổng vòng 1 đã chốt; so với mốc after) | 1.0 [1.0, 1.0] | 1.0 | 0 · 0 · 0 | 0.2273 | Mốc prepared khớp after: không ghi nhận hoàn sai, lỗi hãng oan hay lộ dữ liệu; snapshot giữ nguyên kết quả cổng vòng 1. |
 | 4 | | | | | | | | |
@@ -46,7 +50,11 @@ python3 -m lab10.gate --run runs/<mã lần chạy>/report.json
 ```
 
 - Mã lần chạy: `R-base-before-20261119-161314-f7bb40` (ghi cả vào B0 dòng 1)
+<<<<<<< Updated upstream
 - Ngưỡng nào `[CHƯA]` đạt: `wrongful_refund_vnd` = 20.000đ (trần 0) và `wrongful_carrier_faults` = 1 (trần 0). Các ngưỡng còn lại trong report đều đạt. **Cảnh báo:** `lab10.criteria verify` xác nhận hash hiện tại khác hash đã ký; lệnh gate cũng báo file tiêu chí đã sửa sau khi ký. Vì vậy đây là kết quả so với ngưỡng đang có trong JSON, chưa thể xác nhận là kết quả theo tiêu chí đã ký.
+=======
+- Ngưỡng nào `[CHƯA]` đạt: `wrongful_refund_vnd` = 20.000đ (trần 0) và `wrongful_carrier_faults` = 1 (trần 0). Các ngưỡng còn lại trong report đều đạt. **Cảnh báo:** lệnh gate báo file tiêu chí đã sửa sau khi ký; cần xác minh lại hash/chữ ký trước khi coi đây là kết quả theo tiêu chí đã ký.
+>>>>>>> Stashed changes
 - Khối "kinh doanh và vận hành": chi phí 4.203đ/ticket, ROI 1,34, 0 ca ùn và không vượt trần; nhưng kho `?` có chi phí 10.359đ/ticket, cao hơn làm tay 10.000đ (chỉ 1 ticket). Hoàn sai ngày tệ nhất là 20.000đ; trần hoàn của bàn chưa đặt.
 - Khối "theo kho và hãng": kho HCM có 20.000đ hoàn sai và 1 lỗi hãng oan; hãng VNX cũng có 20.000đ hoàn sai và 1 lỗi oan. Đây là cùng sự cố `T-002@55`.
 
