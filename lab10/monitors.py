@@ -19,7 +19,13 @@ def escalation_rate(trials):
     return sum(t["status"] == "escalated" for t in trials) / max(1, len(trials))
 
 
+def fail_open_rate(trials):
+    hit = sum(1 for t in trials if any(e.get("type") == "llm_fallback" and e.get("mode") == "fail_open" for e in t.get("events", [])))
+    return hit / max(1, len(trials))
+
+
 MONITORS = {
     "escalation_rate": escalation_rate,     # có sẵn; KHÔNG tính là metric mới của đội
+    "fail_open_rate": fail_open_rate,
 }
 STARTER_MONITORS = ("escalation_rate",)

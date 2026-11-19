@@ -279,9 +279,9 @@ python3 -m unittest discover -s tests
 
 | # | Cổng (hàm và nhánh, ví dụ `write_gate` khi `tool == "issue_refund"`) | Ứng với dòng nào ở B6 / B4 | Chặn điều gì, dựa vào nguồn sự thật nào | Mã lần chạy `base · after` | Ca đang đúng nào bị hỏng? (phải là "không") |
 |---|---|---|---|---|---|
-| 1 | | | | | |
-| 2 | | | | | |
-| 3 | | | | | |
+| 1 | `write_gate` khi `tool == "issue_refund"` (và `pre_guard` ghim chính sách hiệu lực) | B6 Kỹ thuật: "đối soát quyền lợi độc lập với lời khách" (khách nổ ngày trễ, prompt injection) / B4 `issue_refund` TOO MUCH | Chặn hoàn tiền vượt quá quyền lợi hoặc khi chưa đủ điều kiện theo chính sách; đối soát lại từ `orders.parcels`, `db_delay_days`, `effective_policy` và `entitlement_vnd` | `R-base-after-20261119-162235-f7bb40` | Không |
+| 2 | `write_gate` khi `tool == "file_carrier_fault"` | B6 Pháp lý: "ghi lỗi hãng theo dữ liệu theo dõi, không đoán" / B4 `file_carrier_fault` WRONG | Chặn phạt hãng khi không đủ điều kiện trễ hoặc nguyên nhân giao trễ không thuộc lỗi của hãng vận chuyển (`carrier_at_fault` là False); chuẩn hoá số ngày trễ theo tracking DB | `R-base-after-20261119-162235-f7bb40` | Không |
+| 3 | `write_gate` khi `tool == "notify_carrier"` và `send_reply` | B6 Pháp lý: "chỉ gửi bên thứ ba thứ đã xác minh và được phép" (rò rỉ dữ liệu cá nhân PII) / B4 `notify_carrier` OTHER THAN | Cắt bỏ trường thông tin liên hệ người nhận (`recipient_contact`) khỏi payload gửi hãng theo chính sách bảo mật; chỉ báo cho khách số tiền đã được xác nhận ghi nhận trong sổ cái | `R-base-after-20261119-162235-f7bb40` | Không |
 
 ### B7.2 · Câu 2.7 · Hai bước tránh rò rỉ dữ liệu
 

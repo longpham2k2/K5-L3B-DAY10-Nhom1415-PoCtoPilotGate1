@@ -81,6 +81,8 @@ def write_gate(ctx, action):
             return Verdict.escalate("không đủ dữ liệu theo dõi để xác minh hoàn tiền")
         delay = H.db_delay_days(parcel, ctx.as_of)
         cause = parcel.get("delay_cause")
+        if delay == 0:
+            return Verdict.deny("đơn giao đúng hạn, không đủ điều kiện hoàn tiền")
         if cause is None:
             ctx.log("unknown_delay_cause", parcel_id=parcel["parcel_id"])
             return Verdict.escalate("chưa xác định được nguyên nhân giao trễ")
