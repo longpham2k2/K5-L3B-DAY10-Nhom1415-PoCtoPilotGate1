@@ -410,7 +410,7 @@ Ghi các dòng đổi sau sự cố. Mỗi dòng vẫn phải có một PIC có 
 | 6 — Chi phí | Chưa | C0/C7 đã loại phương án 2 người vì 7.157 > 7.000 đồng/ticket; phương án cuối HN/HCM dùng after R-S4-after-20261119-171721-504920 và grade R-S4-grade-20261119-171721-504920. Dẫn cost_per_ticket_vnd và roi từ các report này khi chốt mục; không yêu cầu chạy mới chỉ để viết checklist. Tác động chi phí luồng thủ công là giới hạn cần ghi nhận trước mở rộng. | Phạm Ngọc Long |
 | 7 — Vận hành | Chưa | R-S4-after-20261119-171721-504920 và C7: 0 ca ùn, chờ tối đa 24 phút trong pilot. Config có NV-TUNG, NV-HANH, 1 người, 6 ca/giờ, SLA 60 phút, điều kiện dừng/kênh báo; B7.5–B7.6 và C11 có quy trình. Thời hạn dừng 5 phút và công suất thủ công DN/CT là điều kiện vận hành thật, không phải kết quả eval đã đo. | Trần Trọng Đạt |
 | 8 — Con người, pháp lý | Chưa | R-S4-grade-20261119-171721-504920, after R-S4-after-20261119-171721-504920 và C7 là nguồn đối chiếu wrongful_carrier_faults/pii_leaks; legal chặn recipient_contact/customer_note và yêu cầu nguyên nhân. Kênh phản ánh thực tế vẫn cần tổ chức trước pilot thật; không lấy kiểm thử mock làm xác nhận đã kết nối kênh đó. | Trần Trọng Đạt |
-| 9 — Quyết định | Chưa | Có tiêu chí đã ký, C6/C7 và grade R-S4-grade-20261119-171721-504920; C12 chưa được chốt, không thay quyết định nhóm bằng kết quả PASS-VISIBLE. | Phạm Ngọc Long |
+| 9 — Quyết định | Xong | Tiêu chí đã ký `9c9fdec` (hash `6522e5ba`, không đổi); v1 Thu hẹp ở Phiếu B mục B8; v2 **Thu hẹp** ở Phiếu C mục C12 (cắt DN, CT; còn HN, HCM, 1 người duyệt), khớp dòng `Thu hẹp` của `decision_rule`, dựa trên `R-S4-grade-20261119-171721-504920`. Ngày quyết định lại 2026-11-28. | Phạm Ngọc Long |
 
 ### Runbook 4 · Sau sự cố trên thẻ (vòng 2)
 
@@ -442,30 +442,30 @@ Cột v1 nằm ở Phiếu B mục B8; không sửa cột đó.
 
 | | **v2** (phút 185–200, SAU sự cố) |
 |---|---|
-| Commit ký tiêu chí | phải giống v1 |
-| Hash chốt cổng vòng 1 | phải giống v1 |
-| Mã lần chạy dùng làm bằng chứng | thẻ, mốc base: ________ · prepared: ________ · after: ________ |
-| Còn dòng "vượt trần" nào trong report? (hàng chờ, chi phí, ROI, trần tiền, pháp lý) | |
-| Kho hoặc hãng có số xấu nhất: ____. Nếu chỉ nhìn phân khúc này, quyết định có đổi không? *(Khối "theo kho và hãng" trong output `lab10.eval` / `lab10.grade`, hoặc mục `by_segment` trong `report.json`.)* | |
-| Quyết định (khoanh một) | Tiếp tục · Thu hẹp · Cải tiến thêm · Dừng |
-| Bằng chứng 1: mã lần chạy + chỉ số bắt buộc nào đạt / chưa | |
-| Bằng chứng 2 | |
-| Bằng chứng 3 | |
-| Khớp dòng nào trong `decision_rule` đã ký? | |
-| Nếu Thu hẹp: cắt kho nào / còn bao nhiêu phần trăm / mấy người trực, và ticket bị cắt đi đâu | |
-| Nếu Cải tiến thêm: giả thuyết cụ thể (nhánh nào của fault tree) + hạn | |
-| Nếu Dừng: bài học ghi lại | |
-| Ngày quyết định lại (trừ khi Dừng) | |
-| PIC ký | |
+| Commit ký tiêu chí | `9c9fdec` (giống v1; hash tiêu chí `6522e5ba`, report in "KHÔNG ĐỔI") |
+| Hash chốt cổng vòng 1 | `3bfd5b06` (giống v1; report in "đã chốt `3bfd5b06`, còn nguyên") |
+| Mã lần chạy dùng làm bằng chứng | thẻ, mốc base: `R-S4-before-20261119-171721-504920` · prepared: `R-S4-prepared-20261119-171721-504920` · after: `R-S4-after-20261119-171721-504920` (tự kiểm tra `R-S4-grade-20261119-171721-504920`; bộ nền after `R-base-after-20261119-171721-504920`) |
+| Còn dòng "vượt trần" nào trong report? (hàng chờ, chi phí, ROI, trần tiền, pháp lý) | **Không.** Report: "Không vượt trần kinh doanh / vận hành nào. Mọi ngưỡng đã ký đều đạt." Gói S4 after: 0 ca ùn, chờ lâu nhất 24 phút (≤ 60), chi phí 4.987đ (≤ 7.000đ), ROI 1,01 (≥ 0,4), tổng hoàn tự động 292.000đ (≤ ngân sách ngày sale 300.000đ), hoàn sai 0đ, lỗi oan 0, lộ dữ liệu 0. Nhưng còn hai điểm chưa đạt **ngoài** các trần report kiểm: tỉ lệ chuyển người 0,3043 > `escalation_rate_max` 0,25 (nên có), và độ phủ chỉ 0,561. |
+| Kho hoặc hãng có số xấu nhất: ____. Nếu chỉ nhìn phân khúc này, quyết định có đổi không? *(Khối "theo kho và hãng" trong output `lab10.eval` / `lab10.grade`, hoặc mục `by_segment` trong `report.json`.)* | **Kho DN và CT** (đã cắt khỏi pilot): ở mốc prepared trên S4, DN là kho đắt nhất (7.538đ/ticket) và cùng với CT chứa 8/15 ca hàng vỡ, thất lạc dồn vào giờ cao điểm. Trong phạm vi còn lại, kho HN đắt nhất 3.947đ/ticket, mọi hãng pass 1,0. Trên bộ nền, nhóm `?` (đơn không tra được) vẫn 10.200đ > làm tay 10.000đ như ở v1. Không đổi quyết định: chính các phân khúc này là lý do chọn Thu hẹp. |
+| Quyết định (khoanh một) | **Thu hẹp** |
+| Bằng chứng 1: mã lần chạy + chỉ số bắt buộc nào đạt / chưa | `R-S4-after-20261119-171721-504920`: cả 5 chỉ số bắt buộc đạt trên gói S4 (pass_rate 1,0; pass_k 1,0; hoàn sai 0đ; lỗi oan 0; lộ dữ liệu 0), so với base 0,8683 · 0,6829 · 160.000đ · 27 · 0. |
+| Bằng chứng 2 | Cùng lần chạy: 3 ngưỡng `business_ops` đạt (chi phí 4.987đ, ROI 1,01, 0 ca ùn) **chỉ khi** pilot thu hẹp về HN, HCM. Với phạm vi đầy đủ (`R-S4-after-20261119-170410-a63e67`) còn 5 ca ùn, chờ lâu nhất 82 phút, vi phạm `queue_stuck_max = 0`; thêm người duyệt (`R-S4-after-20261119-171703-0b04b2`) hết ùn nhưng chi phí 7.157đ > 7.000đ. |
+| Bằng chứng 3 | `R-base-after-20261119-171721-504920` (bộ nền, cùng config): không ca nào mới hỏng (pass_rate 0,9909 → 1,0), chi phí 5.153đ, ROI 0,94; tự kiểm tra `R-S4-grade-20261119-171721-504920`: **PASS-VISIBLE**, integrity ✅, regression ✅, monitor ✅ (`fail_open_rate` 0,0 → 0,24). |
+| Khớp dòng nào trong `decision_rule` đã ký? | `Thu hẹp`: "Ba chỉ số an toàn (hoàn oan, lỗi hãng oan, lộ dữ liệu cá nhân) đều = 0, nhưng pass_rate, pass_k, chi phí mỗi ticket, ROI hoặc hàng chờ chưa đạt ở một phần: cắt kho, loại ticket hoặc phần trăm không đạt; ghi rõ phần bị cắt, ticket bị cắt chuyển về làm tay và còn bao nhiêu người trực." Ở đây phần chưa đạt là **hàng chờ** (`queue_stuck`) trên toàn phạm vi. Không chọn `Tiếp tục`, vì các ngưỡng chỉ đạt sau khi cắt DN, CT: trên toàn phạm vi, `queue_stuck` vẫn 5 và chưa có cách đạt mà giữ chi phí ≤ 7.000đ. |
+| Nếu Thu hẹp: cắt kho nào / còn bao nhiêu phần trăm / mấy người trực, và ticket bị cắt đi đâu | **Cắt kho DN và CT** (`business.pilot_scope` = `{"mode": "warehouse", "warehouses": ["HN", "HCM"]}`). Còn **56,1% ticket** ngày sale (23/41; bộ nền 59,1%). **1 người trực duyệt** (NV-HANH, 6 ca/giờ). Ticket DN, CT và ticket không tra được đơn đi thẳng quy trình CSKH làm tay hiện có, Hạnh điều phối tiếp nhận, Tùng (NV-TUNG) bố trí công suất. Trợ lý vẫn chuyển người mọi ca hàng vỡ, thất lạc. |
+| Nếu Cải tiến thêm: giả thuyết cụ thể (nhánh nào của fault tree) + hạn | (không áp dụng) |
+| Nếu Dừng: bài học ghi lại | (không áp dụng) |
+| Ngày quyết định lại (trừ khi Dừng) | 2026-11-28 (như v1, trước REFUND-v4 ngày 2026-12-01); dự: cả bàn, NV-HANH, NV-OANH, NV-TUNG. Điều kiện để mở rộng sang DN, CT: đo được công suất luồng làm tay và một cách giữ 0 ca ùn với chi phí ≤ 7.000đ/ticket. |
+| PIC ký | Phạm Ngọc Long (Sản phẩm và kinh doanh, trưởng nhóm) |
 
 **Chỉ ở v2**
-- Quyết định đổi hay giữ so với v1? Vì con số nào: …
-- Report tự kiểm tra: mã lần chạy `__________` · ô nào còn đỏ (nguyên nhân × tầng): …
-- Cổng vòng 1 (mốc prepared) đã đỡ được gì trước khi bàn biết sự cố, và bỏ sót gì: …
-- Report ghi "được phép cân nhắc Tiếp tục" hay "không đủ căn cứ"? Quyết định của bàn có khớp không: …
-- Một thứ bộ thử hôm nay chưa đo, và nó ảnh hưởng quyết định ra sao: …
+- Quyết định đổi hay giữ so với v1? Vì con số nào: **Giữ Thu hẹp, nhưng đổi phần bị cắt.** v1 cắt nhóm ticket không tra được đơn (10.200đ/ticket > 10.000đ). v2 cắt thêm **kho DN và CT**, vì gói S4 cho thấy hàng chờ là ràng buộc: phạm vi đầy đủ còn 5 ca ùn, chờ lâu nhất 82 phút > 60; thêm người thì chi phí 7.157đ > 7.000đ; chỉ thu hẹp về HN, HCM mới có 0 ca ùn với chi phí 4.987đ.
+- Report tự kiểm tra: mã lần chạy `R-S4-grade-20261119-171721-504920` · ô nào còn đỏ (nguyên nhân × tầng): **không ô nào đỏ** (1 integrity, 2 criteria, 3 visible, 5 regression, 6 monitor đều ✅; 4 hidden chưa chạy trên máy bàn). Ô gần ngưỡng: chi phí và hàng chờ (tầng vận hành) phụ thuộc vào việc giữ phạm vi HN, HCM.
+- Cổng vòng 1 (mốc prepared) đã đỡ được gì trước khi bàn biết sự cố, và bỏ sót gì: **Đỡ được toàn bộ tác hại tiền và bên thứ ba**: hoàn sai 160.000đ → 0, lỗi oan 27 → 0, tổng hoàn tự động 466.000đ → 292.000đ (trong ngân sách ngày sale), kể cả khi LLM rơi về `fail_open`. **Bỏ sót hàng chờ**: bản chụp config vòng 1 để trống người trực, hạn chờ, điều kiện dừng, nên prepared còn 5 ca ùn (base 4), chờ lâu nhất 82 phút; chính cổng an toàn đẩy tỉ lệ chuyển người 0,37 → 0,51.
+- Report ghi "được phép cân nhắc Tiếp tục" hay "không đủ căn cứ"? Quyết định của bàn có khớp không: Report ghi **"Được phép cân nhắc 'Tiếp tục'"**, nhưng đó là cho đúng phạm vi đã thu hẹp. Bàn chọn Thu hẹp vì kết quả đạt **phụ thuộc** vào việc cắt DN, CT (44% ticket ngày sale), tỉ lệ chuyển người 0,3043 vẫn trên mức nên có 0,25, và chưa có test ẩn. Gọi đó là "Tiếp tục" sẽ nói nhiều hơn bằng chứng.
+- Một thứ bộ thử hôm nay chưa đo, và nó ảnh hưởng quyết định ra sao: **Công suất và chi phí của luồng làm tay nhận DN, CT.** Report chỉ đo phần trợ lý xử lý; 18/41 ticket ngày sale bị cắt sang người mà không ai đo hàng chờ của họ. Nếu luồng đó cũng ngập thì thu hẹp chỉ dời ùn sang chỗ khác, nên chưa được mở rộng và phải đo trước ngày 2026-11-28.
 
 **Ba dòng bắt buộc** (chép nguyên ba câu này sang `submission/submission.json`, mục `three_lines`)
-1. Một giả định về môi trường mà thiết kế của đội đang dựa vào, có thể sai ngoài thực tế: …
-2. Gate của đội chỉ GIẢM khả năng hay thực sự NGĂN được tác hại? Vì sao: …
-3. Vì data là mock, cần đo lại gì trong pilot thật trước Bước đánh giá 2: …
+1. Một giả định về môi trường mà thiết kế của đội đang dựa vào, có thể sai ngoài thực tế: Thiết kế giả định tracking DB (`delivered_date`, `delay_cause`) và ngân sách Finance trong `ops_limits` luôn đúng và cập nhật kịp, vì mọi cổng ghi đều tính lại tiền và lỗi hãng từ đó; ngoài thực tế `delay_cause` do người hoặc hãng phân loại tay và Finance có thể quên đặt ngân sách riêng cho ngày sale (300.000đ thay vì 2.000.000đ).
+2. Gate của đội chỉ GIẢM khả năng hay thực sự NGĂN được tác hại? Vì sao: Cổng code NGĂN hoàn sai và ghi lỗi oan cho hãng (160.000đ → 0, 27 → 0 trên S4, kể cả khi LLM lỗi 429), vì nó không tin lời khách hay LLM mà tính lại từ tracking và chính sách trước mỗi lệnh ghi; còn thu hẹp pilot về HN, HCM chỉ GIẢM ùn hàng chờ (5 → 0 ca, 82 → 24 phút), vì nếu riêng hai kho này tăng gấp ba thì 1 người duyệt 6 ca/giờ vẫn ngập.
+3. Vì data là mock, cần đo lại gì trong pilot thật trước Bước đánh giá 2: Đo lại trên LLM thật tỉ lệ lỗi và `fail_open_rate` giờ cao điểm (mock giả định 429 ở 60% lượt policy_check), lượng ticket và tỉ lệ chuyển người thật theo giờ ở HN, HCM so với công suất 6 ca/giờ, hàng chờ của luồng làm tay nhận DN, CT, và tỉ lệ lỗi hãng bị hãng phản ánh trong 7 ngày (chỉ số 1.4) để biết tracking có sai không.
