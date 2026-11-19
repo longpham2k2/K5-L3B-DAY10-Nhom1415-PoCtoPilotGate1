@@ -355,7 +355,7 @@ Thẻ S5 dùng mục này cho một con số kinh doanh: chi phí mỗi ticket t
 | **Cách tính** (công thức, mẫu số, cách xử lý ca thiếu dữ liệu) | `(Số trial có sự kiện llm_fallback mode fail_open) / max(1, Tổng số trial)`. Danh sách rỗng trả về 0.0 |
 | **Khung thời gian / ngưỡng báo động** | Giám sát cửa sổ trượt 60 phút và theo ca 480 phút; ngưỡng báo động: `fail_open_rate > 0.05` (quá 5% số vé trong giờ) |
 | **Điểm mù** (chỉ số này KHÔNG thấy gì) | Không thấy các ca lỗi 429 nhưng retry lần 2 thành công; không đo được lệnh hoàn tiền sau fallback có bị `write_gate` chặn hay không |
-| Giá trị trên bộ nền · trên thẻ (đọc mục `monitor` của report) | Bộ nền: `0.0` (0%) · Thẻ S4: `0.1854` (18.54% ở mốc before và after) |
+| Giá trị trên bộ nền · trên thẻ (đọc mục `monitor` của report) | Bộ nền: `0.0` (0%) · Thẻ S4: `0.1854` ở mốc base (toàn bộ 41 ticket) và `0.2435` ở mốc after (`R-S4-grade-20261119-171721-504920`, chỉ tính 23 ticket HN + HCM trong phạm vi pilot; tỉ lệ cao hơn vì mẫu số nhỏ hơn, không phải vì lỗi LLM tăng). Cả hai đều vượt ngưỡng báo động 0,05 → chỉ số "sáng đèn" đúng lúc sự cố. |
 
 ---
 
