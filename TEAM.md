@@ -80,10 +80,15 @@ Vai **Vận hành và pháp lý**. Đề: câu 1.2, 1.4 (Phiếu A mục A1, A2)
 - Phiếu: A1 câu 1.2, A2 cột telemetry; B4, B5, B7.5, B7.6; C9, C10, C11.
 
 ### Dùng AI
-...
+Tôi dùng ChatGPT/Codex để giải thích yêu cầu đề, đối chiếu PRD và repo, đề xuất hướng dẫn và kiểm tra lại nội dung cần thực hiện sao cho phù hợp hơn và đúng đắn hơn. Các phần nội dung đề xuất vẫn cần được kiểm tra và sửa lại để đồng bộ với các thông tin đang có.
 
 ### Exit ticket
-...
+Học được cách sử dụng HAZOP để đề xuất các bối cảnh tình huống xấu có thể xảy ra và lường trước mức độ hậu quả.  
+Cần cân nhắc rủi ro từ nhiều bên khác nhau. Cần hỏi trước ai sẽ là người chịu hậu quả nếu agent đưa ra quyết định sai.  
+Phân biệt giới hạn quyền tự động với giới hạn nghiệp vụ với tình huống trần tự động trong incident đề bài.  
+  
+Vướng mắc còn là vẫn chưa thực sự nắm rõ được khả năng, công suất thực sự làm việc của phần con người khi quy trình đẩy việc sang cho họ, giới hạn của con người về sức lực và chi phí có thể có sự khác biệt.
+
 
 ## NguyenCongHuy-2A202604086
 
