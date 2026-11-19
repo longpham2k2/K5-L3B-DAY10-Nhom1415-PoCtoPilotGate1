@@ -1,12 +1,17 @@
 {
-  "team": "",
-  "members": [],
-  "incident": "",
-  "decision_v1": "",
-  "decision_v2": "",
+  "team": "K5-L3B-DAY10-Nhom1415-PoCtoPilotGate1",
+  "members": [
+    "PhamNgocLong-2A202604111",
+    "TranTrongDat-2A202604030",
+    "NguyenCongHuy-2A202604086",
+    "NguyenTrongKhiem-2A202604109"
+  ],
+  "incident": "S4",
+  "decision_v1": "Thu hẹp",
+  "decision_v2": "Thu hẹp",
   "three_lines": {
-    "environment_assumption": "",
-    "reduce_or_prevent": "",
-    "measure_in_pilot": ""
+    "environment_assumption": "Thiết kế giả định tracking DB (`delivered_date`, `delay_cause`) và ngân sách Finance trong `ops_limits` luôn đúng và cập nhật kịp, vì mọi cổng ghi đều tính lại tiền và lỗi hãng từ đó; ngoài thực tế `delay_cause` do người hoặc hãng phân loại tay và Finance có thể quên đặt ngân sách riêng cho ngày sale (300.000đ thay vì 2.000.000đ).",
+    "reduce_or_prevent": "Cổng code NGĂN hoàn sai và ghi lỗi oan cho hãng (160.000đ → 0, 27 → 0 trên S4, kể cả khi LLM lỗi 429), vì nó không tin lời khách hay LLM mà tính lại từ tracking và chính sách trước mỗi lệnh ghi; còn thu hẹp pilot về HN, HCM chỉ GIẢM ùn hàng chờ (5 → 0 ca, 82 → 24 phút), vì nếu riêng hai kho này tăng gấp ba thì 1 người duyệt 6 ca/giờ vẫn ngập.",
+    "measure_in_pilot": "Đo lại trên LLM thật tỉ lệ lỗi và `fail_open_rate` giờ cao điểm (mock giả định 429 ở 60% lượt policy_check), lượng ticket và tỉ lệ chuyển người thật theo giờ ở HN, HCM so với công suất 6 ca/giờ, hàng chờ của luồng làm tay nhận DN, CT, và tỉ lệ lỗi hãng bị hãng phản ánh trong 7 ngày (chỉ số 1.4) để biết tracking có sai không."
   }
 }

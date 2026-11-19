@@ -54,7 +54,8 @@ Trưởng nhóm · vai **Sản phẩm và kinh doanh**. Đề: câu 1.1, 1.5, 1.
 Dùng Claude (Claude Code) để đọc repo, soạn nháp câu trả lời trong phiếu, kiểm tra JSON tiêu chí trước khi ký, chạy lệnh đánh giá và soát chéo phần của các bạn. Mọi ngưỡng, con số và quyết định do bàn chốt.
 
 ### Exit ticket
-...
+- Tôi đã học được: Gate phòng ngừa cần được đặt ở ngoài model, và cần được tính lại từ các nguồn sự thật (có dẫn chứng, số liệu). Gate phòng ngừa cũng cần chặn được hết tác hại tiền và lỗi hãng của thẻ S4 (160.000đ -> 0.27 -> 0) mà không cần phải biết trước sự cố. Tuy nhiên, gate an toàn lại đẩy thêm việc sang phía người duyệt, nên an toàn và công suất phải được thiết kế cùng nhau.
+- Tôi còn chưa nắm rõ: Thu hẹp phạm vi về chỉ HN và HCM dời được 18/41 ticket sang luồng làm thủ công, tôi không rõ liệu luồng đó có đủ nhân sự hay chỉ đẩy hàng chờ sang chỗ khác.
 
 ## TranTrongDat-2A202604030
 
